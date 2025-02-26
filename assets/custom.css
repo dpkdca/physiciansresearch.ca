@@ -489,3 +489,7 @@ button.addtocartbtn {
     color: #080a1c;
     font-weight: 600;
 }
+.featured-collection .swiper-container .product-block {
+    flex-direction: column;
+    padding: 10px;
+}
