@@ -489,3 +489,6 @@ button.addtocartbtn {
     color: #080a1c;
     font-weight: 600;
 }
+h2.small-title {
+    color: #d8d8d8 !important;
+}
