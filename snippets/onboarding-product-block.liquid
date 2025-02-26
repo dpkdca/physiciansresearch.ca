@@ -1,0 +1,16 @@
+<div class="product-block grid__item {{ grid_class | default: 'one-quarter small-down--one-half' }}">
+  <a class="product-block__link" href="#">
+    {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+    <div class="product-block__image">
+      {{ 'product-' | append: current | placeholder_svg_tag: 'global-border-radius placeholder-svg' }}
+    </div>
+
+    <div class="product-block__price product-price">
+      <span class="product-price__amount theme-money">{%- render "price", price: 1999 -%}</span>
+    </div>
+
+    <div class="product-block__title">
+      {{ 'homepage.onboarding.product_title' | t }}
+    </div>
+  </a>
+</div>

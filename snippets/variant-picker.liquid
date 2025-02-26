@@ -1,0 +1,48 @@
+{%- for option in product.options_with_values -%}
+  {%- capture option_id -%}{{ section.id }}-{{ option.name | handle }}{%- endcapture -%}
+  {%- assign swatches = false -%}
+
+  {%- if settings.swatch_enabled and settings.swatch_option_name == option.name -%}
+    {%- assign swatches = true -%}
+    <style>
+      [data-swatch]::before { background-color: #ddd; }
+      {%- if settings.swatch_images -%}
+        {%- for value in option.values -%}
+          [data-swatch="{{ value | replace: '"', '' | downcase }}"]::before {
+            background-image: url({{ value | handle | append: '.png' | file_img_url: '68x68', crop: 'center' }});
+          }
+        {%- endfor -%}
+      {%- else -%}
+        {%- for value in option.values -%}
+          [data-swatch="{{ value | replace: '"', '' | downcase }}"]::before { background-color: {{ value | handle | remove: '-' }}; }
+        {%- endfor -%}
+      {%- endif -%}
+    </style>
+  {%- endif -%}
+
+  {%- if settings.variant_style == 'dropdown' -%}
+    <div class="option-selector form-row" data-single-option-selector data-selector-type="dropdown" data-index="option{{ option.position }}">
+      {% render 'custom-select',
+        id: option_id,
+        label: option.name,
+        label_inside: true,
+        option_values: option.values,
+        selected_value: option.selected_value,
+        swatches: swatches
+      %}
+    </div>
+  {%- else -%}
+    <fieldset class="option-selector form-row" data-single-option-selector data-selector-type="listed" data-index="option{{ option.position }}">
+      <legend class="label">
+        {{- option.name -}}{% if swatches %} - <span class="js-option-title">{{ option.selected_value }}</span>{% endif %}
+      </legend>
+      <div class="option-selector__btns">
+        {%- for value in option.values -%}
+          <input class="opt-btn js-option" type="radio" name="{{ option_id }}-option" id="{{ option_id }}-opt{{ forloop.index0 }}"
+            value="{{ value | escape }}"{% if option.selected_value == value %} checked{% endif %}>
+          <label class="opt-label"{% if swatches %} data-swatch="{{ value | replace: '"', '' | downcase }}"{% endif %} for="{{ option_id }}-opt{{ forloop.index0 }}">{{ value }}</label>
+        {%- endfor -%}
+      </div>
+    </fieldset>
+  {%- endif -%}
+{%- endfor -%}

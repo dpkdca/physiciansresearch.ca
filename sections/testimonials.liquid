@@ -1,0 +1,115 @@
+<div class="row testimonials" data-section-id="{{ section.id }}" data-section-type="testimonials">
+  {% if section.settings.title != blank %}
+    <h2 class="standard-title">{{ section.settings.title }}</h2>
+  {% endif %}
+  <div class="grid testimonials-grid">
+
+    {% for block in section.blocks %}
+      <div class="testimonial-block grid__item" {{ block.shopify_attributes }}>
+          {% render 'testimonial',
+                      product: block.settings.testimonial_product,
+                      product_tab: section.settings.tab_products,
+                      stars: block.settings.testimonial_stars,
+                      comment: block.settings.testimonial_comment,
+                      author: block.settings.testimonial_author,
+                      author_location: block.settings.testimonial_location,
+                      author_image: block.settings.testimonial_author_image %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Testimonials",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Add up to 3 testimonials per row. If the sidebar is turned on only 2 testimonials will display per row."
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Testimonials"
+      },
+      {
+        "type": "checkbox",
+        "id": "tab_products",
+        "label": "Show products in cards",
+        "default": true
+      }
+    ],
+    "blocks": [
+      {
+        "type": "testimonial",
+        "name": "Testimonial",
+        "settings": [
+          {
+            "type": "product",
+            "id": "testimonial_product",
+            "label": "Product"
+          },
+          {
+            "type": "range",
+            "id": "testimonial_stars",
+            "min": 0,
+            "max": 5,
+            "step": 1,
+            "label": "Star rating",
+            "default": 5
+          },
+          {
+            "type": "richtext",
+            "id": "testimonial_comment",
+            "label": "Testimonial",
+            "default": "<p>Add customer reviews and testimonials to showcase your store’s happy customers.</p>"
+          },
+          {
+            "type": "header",
+            "content": "Author"
+          },
+          {
+            "type": "text",
+            "id": "testimonial_author",
+            "label": "Name",
+            "default": "Author's name"
+          },
+          {
+            "type": "text",
+            "id": "testimonial_location",
+            "label": "Subtitle",
+            "info": "For example: Location, job title"
+          },
+          {
+            "type": "image_picker",
+            "id": "testimonial_author_image",
+            "label": "Profile image"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Testimonials",
+        "blocks": [
+          {
+            "type": "testimonial"
+          },
+          {
+            "type": "testimonial"
+          },
+          {
+            "type": "testimonial"
+          }
+        ]
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

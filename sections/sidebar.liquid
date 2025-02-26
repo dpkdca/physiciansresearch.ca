@@ -1,0 +1,318 @@
+<div class="sidebar-sticky" data-section-id="{{ section.id }}" data-section-type="sidebar">
+  {%- if section.settings.show_sidebar and section.blocks.size > 0 -%}
+    {%- liquid
+      assign has_mobile_block = false
+      for block in section.blocks
+        if block.settings.show_on_mobile
+          assign has_mobile_block = true
+        endif
+      endfor
+    -%}
+  
+    <div class="sidebar{% if has_mobile_block %} sidebar--has-mobile-block{% endif %} section-{{ section.id }}">
+      {% render 'sidebar-blocks' %}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+  {
+    "name": "Sidebar",
+    "class": "sidebar-container sidebar-container--left",
+    "max_blocks": 5,
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "If the sidebar is empty or hidden, the page contents will expand to fill its place."
+      },
+      {
+        "type": "checkbox",
+        "id": "show_sidebar",
+        "label": "Show sidebar",
+        "default": true
+      },
+      {
+        "type": "paragraph",
+        "content": "Use checkboxes in each block to select which content to display on mobile. Sidebar content will display above the other homepage sections on mobile."
+      }
+    ],
+    "blocks": [
+      {
+        "type": "article",
+        "name": "Featured articles",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Featured articles"
+          },
+          {
+            "type": "paragraph",
+            "content": "Add up to 3 articles to feature in the sidebar"
+          },
+          {
+            "type": "article",
+            "id": "sidebar_article_1",
+            "label": "Article 1"
+          },
+          {
+            "type": "article",
+            "id": "sidebar_article_2",
+            "label": "Article 2"
+          },
+          {
+            "type": "article",
+            "id": "sidebar_article_3",
+            "label": "Article 3"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_date",
+            "label": "Show date",
+            "default": true
+          },
+          {
+            "type": "checkbox",
+            "id": "show_author",
+            "label": "Show author",
+            "default": false
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "image",
+        "name": "Image",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "url",
+            "id": "image_url",
+            "label": "Image link"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "blog",
+        "name": "Latest blog posts",
+        "settings": [
+          {
+            "type": "blog",
+            "id": "blog_id",
+            "label": "Blog",
+            "info": "Display the latest articles from a blog"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_title",
+            "label": "Show title",
+            "default": false
+          },
+          {
+            "type": "range",
+            "id": "blog_count_int",
+            "min": 1,
+            "max": 3,
+            "step": 1,
+            "label": "Number of articles to show",
+            "default": 1
+          },
+          {
+            "type": "checkbox",
+            "id": "show_date",
+            "label": "Show date",
+            "default": true
+          },
+          {
+            "type": "checkbox",
+            "id": "show_author",
+            "label": "Show author",
+            "default": false
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "collection_list",
+        "name": "Mini collection list",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Collections"
+          },
+          {
+            "type": "paragraph",
+            "content": "Add up to 5 collections"
+          },
+          {
+            "type": "collection",
+            "id": "collection_1",
+            "label": "Collection 1"
+          },
+          {
+            "type": "collection",
+            "id": "collection_2",
+            "label": "Collection 2"
+          },
+          {
+            "type": "collection",
+            "id": "collection_3",
+            "label": "Collection 3"
+          },
+          {
+            "type": "collection",
+            "id": "collection_4",
+            "label": "Collection 4"
+          },
+          {
+            "type": "collection",
+            "id": "collection_5",
+            "label": "Collection 5"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "page",
+        "name": "Page",
+        "settings": [
+          {
+            "type": "page",
+            "id": "page_id",
+            "label": "Select page",
+            "info": "Display a page of content from your store"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "name": "Rich text",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Rich text"
+          },
+          {
+            "type": "richtext",
+            "id": "text",
+            "label": "Text",
+            "default": "<p>Use this text to share information about your store with your customers.</p><p>Describe product, share announcements, or welcome customers to your store.</p>"
+          },
+          {
+            "type": "text",
+            "id": "button_text",
+            "label": "Button text"
+          },
+          {
+            "type": "url",
+            "id": "button_url",
+            "label": "Button link"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "testimonial",
+        "name": "Testimonial",
+        "settings": [
+          {
+            "type": "product",
+            "id": "testimonial_product",
+            "label": "Product"
+          },
+          {
+            "type": "checkbox",
+            "id": "tab_products",
+            "label": "Show product in a card",
+            "default": true
+          },
+          {
+            "type": "range",
+            "id": "testimonial_stars",
+            "min": 0,
+            "max": 5,
+            "step": 1,
+            "label": "Star rating",
+            "default": 5
+          },
+          {
+            "type": "richtext",
+            "id": "testimonial_comment",
+            "label": "Testimonial",
+            "default": "<p>Add customer reviews and testimonials to showcase your store’s happy customers.</p>"
+          },
+          {
+            "type": "header",
+            "content": "Author"
+          },
+          {
+            "type": "text",
+            "id": "testimonial_author",
+            "label": "Name",
+            "default": "Author's Name"
+          },
+          {
+            "type": "text",
+            "id": "testimonial_location",
+            "label": "Subtitle",
+            "info": "For example: Location, job title",
+            "default": "Location"
+          },
+          {
+            "type": "image_picker",
+            "id": "testimonial_author_image",
+            "label": "Profile image"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
+

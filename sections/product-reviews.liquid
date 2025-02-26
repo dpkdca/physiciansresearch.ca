@@ -1,0 +1,20 @@
+<div class="row-double-space product-reviews-manager">
+  <div id="shopify-product-reviews" data-id="{{ product.id }}"></div>
+</div>
+
+{% schema %}
+  {
+    "name": "Product reviews",
+    "tag": "section",
+    "presets": [
+      {
+        "name": "Product reviews"
+      }
+    ],
+    "enabled_on": {
+      "templates": [
+        "product"
+      ]
+    }
+  }
+{% endschema %}

@@ -1,0 +1,201 @@
+{%- for block in section.blocks -%}
+  {%- case block.type -%}
+    {%- when 'article' -%}
+      <div class="sidebar-block sidebar-block--text{% unless block.settings.show_on_mobile %} desktop-only{% endunless %}" {{ block.shopify_attributes }}>
+        {%- if block.settings.title != blank -%}
+          <h2 class="small-title">{{ block.settings.title }}</h2>
+        {%- endif -%}
+        {% for i in (1..3) %}
+          {%- capture current -%}sidebar_article_{{ i }}{%- endcapture -%}
+          {%- assign article = articles[block.settings[current]] -%}
+          {%- if article != blank -%}
+            <div class="article-summary">
+              {%- if article.image -%}
+                <div class="article-summary__image">
+                  <a class="global-border-radius sidebar-block--article-link" href="{{ article.url }}">
+                    {% render 'responsive-image', image: article.image %}
+                  </a>
+                </div>
+              {%- endif -%}
+              {%- if block.settings.show_author or block.settings.show_date -%}
+                <span class="article-meta">
+                  {%- if block.settings.show_author -%}
+                    <span class="article-summary__author article-meta">{{ article.author }}</span>
+                  {%- endif -%}
+
+                  {%- if block.settings.show_author and block.settings.show_date -%}
+                    <span class="article-summary__divider">&middot;</span>
+                  {%- endif -%}
+
+                  {%- if block.settings.show_date -%}
+                    <date class="article-summary__date article-meta">{{ article.published_at | date: format: 'month_day_year' }}</date>
+                  {%- endif -%}
+                </span>
+              {%- endif -%}
+              <h3 class="article-summary__title subtitle">
+                <a href="{{ article.url }}">{{ article.title | strip_html | truncate: 30 }}</a>
+              </h3>
+              <div class="article-summary__excerpt">
+                {%- unless article.excerpt == blank -%}
+                  {{ article.excerpt }}
+                {%- else -%}
+                  <p>{{ article.content | strip_html | truncatewords: 20 }}</p>
+                {%- endunless -%}
+              </div>
+              <div class="article-summary__read-more">
+                <a class="standard-link" href="{{ article.url }}">{{ 'blogs.article.read_more' | t }}</a>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+    {%- when 'blog' -%}
+      <div class="sidebar-block sidebar-block--blog{% unless block.settings.show_on_mobile %} desktop-only{% endunless %}" {{ block.shopify_attributes }}>
+        {%- assign blog = blogs[block.settings.blog_id] -%}
+        {%- if blog != blank -%}
+          {%- if block.settings.show_title -%}
+            <h2 class="small-title">{{ blog.title }}</h2>
+          {%- endif -%}
+          {%- if blog.articles_count > 0 -%}
+            {%- for article in blog.articles limit: block.settings.blog_count_int -%}
+              <div class="article-summary">
+                {%- if article.image -%}
+                  <div class="article-summary__image">
+                    <a class="global-border-radius sidebar-block--article-link" href="{{ article.url }}">
+                      {% render 'responsive-image', image: article.image %}
+                    </a>
+                  </div>
+                {%- endif -%}
+                {%- if block.settings.show_author or block.settings.show_date -%}
+                  <span class="article-meta">
+                    {%- if block.settings.show_author -%}
+                      <span class="article-summary__author article-meta">{{ article.author }}</span>
+                    {%- endif -%}
+
+                    {%- if block.settings.show_author and block.settings.show_date -%}
+                      <span class="article-summary__divider">&middot;</span>
+                    {%- endif -%}
+
+                    {%- if block.settings.show_date -%}
+                      <date class="article-summary__date article-meta">{{ article.published_at | date: format: 'month_day_year' }}</date>
+                    {%- endif -%}
+                  </span>
+                {%- endif -%}
+                <h3 class="article-summary__title subtitle">
+                  <a href="{{ article.url }}">{{ article.title | strip_html | truncate: 30 }}</a>
+                </h3>
+                <div class="article-summary__excerpt">
+                  {%- unless article.excerpt == blank -%}
+                    {{ article.excerpt }}
+                  {%- else -%}
+                    <p>{{ article.content | strip_html | truncatewords: 20 }}</p>
+                  {%- endunless -%}
+                </div>
+                <div class="article-summary__read-more">
+                  <a class="standard-link" href="{{ article.url }}">{{ 'blogs.article.read_more' | t }}</a>
+                </div>
+              </div>
+            {%- endfor -%}
+          {%- else -%}
+            {%- for article in (1..block.settings.blog_count_int) -%}
+              <div class="article-summary">
+                <div class="article-summary__image global-border-radius">
+                  {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+                </div>
+                {%- if block.settings.show_date -%}
+                  <date class="article-summary__date article-meta">{{ 'now' | date: format: 'month_day_year' }}</date>
+                {%- endif -%}
+                <h3 class="article-summary__title subtitle">{{ 'homepage.onboarding.article_title' | t }}</h3>
+                <div class="article-summary__excerpt"><p>{{ 'homepage.onboarding.article_excerpt' | t }}</p></div>
+                <div class="article-summary__read-more">
+                  <a class="standard-link" href="#">{{ 'blogs.article.read_more' | t }}</a>
+                </div>
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+        {%- else -%}
+          <h2 class="small-title">{{ 'homepage.onboarding.blog_title' | t }}</h2>
+          {%- for article in (1..block.settings.blog_count_int) -%}
+            <div class="article-summary">
+              <div class="article-summary__image">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+              <date class="article-summary__date article-meta">{{ 'now' | date: format: 'month_day_year' }}</date>
+              <h3 class="article-summary__title subtitle">{{ 'homepage.onboarding.article_title' | t }}</h3>
+              <div class="article-summary__excerpt"><p>{{ 'homepage.onboarding.article_excerpt' | t }}</p></div>
+              <div class="article-summary__read-more">
+                <a class="standard-link" href="#">{{ 'blogs.article.read_more' | t }}</a>
+              </div>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+
+    {%- when 'collection_list' -%}
+      <div class="sidebar-block sidebar-block--collections{% unless block.settings.show_on_mobile %} desktop-only{% endunless %}" {{ block.shopify_attributes }}>
+        {%- if block.settings.title != blank -%}
+          <h2 class="small-title">{{ block.settings.title }}</h2>
+        {%- endif -%}
+        {%- for i in (1..5) -%}
+          {%- capture current -%}collection_{{ i }}{%- endcapture -%}
+          {%- assign collection = collections[block.settings[current]] -%}
+          {%- if collection != blank -%}
+            {%- render 'exp-tab',
+              size: 'fill',
+              type: 'collection',
+              current: forloop.index,
+              collection: collection,
+              image: collection.featured_image,
+              title: collection.title
+            -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+    {%- when 'image' -%}
+      <div class="sidebar-block sidebar-block--image{% unless block.settings.show_on_mobile %} desktop-only{% endunless %}" {{ block.shopify_attributes }}>
+        {%- if block.settings.image_url != blank -%}<a href="{{ block.settings.image_url }}">{%- endif -%}
+          {%- if block.settings.image != blank -%}
+            <div class="global-border-radius">
+              {% render 'responsive-image', image: block.settings.image %}
+            </div>
+          {%- else -%}
+            {{ 'image' | placeholder_svg_tag: 'global-border-radius placeholder-svg' }}
+          {%- endif -%}
+        {%- if block.settings.image_url != blank -%}</a>{%- endif -%}
+      </div>
+
+    {%- when 'page' -%}
+      <div class="sidebar-block sidebar-block--page{% unless block.settings.show_on_mobile %} desktop-only{% endunless %}" {{ block.shopify_attributes }}>
+        {%- unless block.settings.page_id == "" -%}
+          <h2 class="small-title">{{ pages[block.settings.page_id].title }}</h2>
+          <p>{{ pages[block.settings.page_id].content | strip_html | truncate: 200 }}</p>
+        {%- else -%}
+          <h2 class="small-title">{{ 'homepage.onboarding.page_title' | t }}</h2>
+          <p>{{ 'homepage.onboarding.page_content' | t }}</p>
+        {%- endunless -%}
+        <p><a class="standard-link" href="{{ pages[block.settings.page_id].url }}">{{ 'homepage.sidebar.read_more' | t }}</a></p>
+      </div>
+
+    {%- when 'testimonial' -%}
+      <div class="sidebar-block sidebar-block--testimonial{% unless block.settings.show_on_mobile %} desktop-only{% endunless %}" {{ block.shopify_attributes }}>
+        {% render 'testimonial',
+                    product: block.settings.testimonial_product,
+                    product_tab: block.settings.tab_products,
+                    stars: block.settings.testimonial_stars,
+                    comment: block.settings.testimonial_comment,
+                    author: block.settings.testimonial_author,
+                    author_location: block.settings.testimonial_location,
+                    author_image: block.settings.testimonial_author_image %}
+      </div>
+
+    {%- when 'text' -%}
+      <div class="sidebar-block sidebar-block--text{% unless block.settings.show_on_mobile %} desktop-only{% endunless %}" {{ block.shopify_attributes }}>
+        <h2 class="small-title">{{ block.settings.title }}</h2>
+        <div class="rte">{{ block.settings.text }}</div>
+        {%- if block.settings.button_text != blank and block.settings.button_url != blank -%}
+          <a href="{{ block.settings.button_url }}" class="btn btn--primary btn-after-text">{{ block.settings.button_text }}</a>
+        {%- endif -%}
+      </div>
+
+  {%- endcase -%}
+{%- endfor -%}

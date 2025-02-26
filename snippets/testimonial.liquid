@@ -1,0 +1,34 @@
+<div class="testimonial">
+  {% if product != blank %}
+    {%- if product_tab -%}
+      {%- assign tab_size = 'fill' -%}
+    {%- else -%}
+      {%- assign tab_size = 'uncard' -%}
+    {%- endif -%}
+    {% render 'exp-tab', size: tab_size, type: 'product', product: product, testimonial: true  %}
+  {% endif %}
+  <div class="testimonial-stars">
+    {% for i in (1..stars) %}
+      <span class="icon feather-icon testimonial-star">{% render 'rating-star-icon' %}</span>
+    {% endfor %}
+  </div>
+  <blockquote class="testimonial-content">
+    {{ comment }}
+    <footer class="testimonial-author-meta">
+      {% if author_image != blank %}
+        <div class="testimonial-author-image lazyload rimage-background"
+                data-bgset="{% render 'bgset', image: author_image %}"
+                data-sizes="auto"
+                data-parent-fit="cover"
+                style="background-position: {{ author_image.presentation.focal_point }}">
+        </div>
+      {% endif %}
+      <div class="testimonial-author-details">
+        <div class="testimonial-author-name">{{ author }}</div>
+        {% if author_location != blank %}
+          <div class="testimonial-author-location">{{ author_location }}</div>
+        {% endif %}
+      </div>
+    </footer>
+  </blockquote>
+</div>

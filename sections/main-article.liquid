@@ -1,0 +1,613 @@
+{% comment %}
+  When a comment is submitted, the browser is redirected to a page that includes
+  the new comment id in its URL.
+  #comments is a required ID and is used as an anchor link by Shopify.
+{% endcomment %}
+{%- assign number_of_comments = article.comments_count -%}
+
+{% comment %}
+  If a comment was just submitted but requires moderation, we have an extra comment to count.
+{% endcomment %}
+{%- if comment and comment.status != 'published' -%}
+  {%- assign number_of_comments = article.comments_count | plus: 1 -%}
+{%- endif -%}
+
+{%- if section.settings.show_author or section.settings.show_date -%}
+  {%- capture article_meta_html -%}
+    <div class="article-meta">
+      {%- if section.settings.show_author -%}
+        <span class="article-summary__author article-meta">{{ article.author }}</span>
+      {%- endif -%}
+
+      {%- if section.settings.show_author and section.settings.show_date -%}
+        <span class="article-summary__divider">&middot;</span>
+      {%- endif -%}
+
+      {%- if section.settings.show_date -%}
+        <date class="article-summary__date article-meta">{{ article.published_at | date: format: 'month_day_year' }}</date>
+      {%- endif -%}
+    </div>
+  {%- endcapture -%}
+{%- endif -%}
+
+{%- assign show_sidebar = section.settings.show_sidebar -%}
+
+<div class="row row-space-bottom sidebar-candidate{% if show_sidebar %} page-has-sidebar sidebar-layout sidebar-layout--right{% endif %}">
+  <article class="main-page-content{% if show_sidebar == false %} reading-width{% endif %}" data-section-id="{{ section.id }}" data-section-type="article">
+    {%- if section.settings.title_position == 'top' -%}
+      <div class="row-bottom">
+        <h1 class="large-title">{{ article.title }}</h1>
+        {{ article_meta_html }}
+      </div>
+    {%- endif -%}
+
+    {%- if article.image -%}
+      <a href="{{ article.url }}">
+        <div class="global-border-radius">
+          {% render'responsive-image', image: article.image %}
+        </div>
+      </a>
+    {%- endif -%}
+
+    {%- if section.settings.title_position == 'bottom' -%}
+      <div class="row">
+        <h1 class="large-title">{{ article.title }}</h1>
+        {{ article_meta_html }}
+
+        {%- if section.settings.show_tags -%}
+          <div class="categories {% if show_sidebar %} mobile-only{% endif %}">
+            {%- if article.tags.size > 0 -%}
+              <ul class="article__tags">
+                {%- for tag in article.tags -%}
+                  <li class="article-tag btn btn--tags btn--small">
+                    <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="rte row clearfix">
+      {{ article.content }}
+    </div>
+
+    {%- if section.settings.show_share_buttons -%}
+      <div class="row-double-space">
+        {% render 'social-sharing', share_title: article.title, share_permalink: article.url, share_image: article.image %}
+      </div>
+    {%- endif -%}
+
+    {%- if blog.comments_enabled? -%}
+      <div class="row-double-space">
+        <h3 class="row">{{ 'blogs.comments.with_count' | t: count: number_of_comments }}</h3>
+
+        {%- paginate article.comments by 5 -%}
+          <div id="comments">
+            {%- if comment and comment.status and paginate.current_page == 1 -%}
+              <p class="form-success">
+                {%- if blog.moderated? and comment.status != 'published' -%}
+                  {{ 'blogs.comments.success_moderated' | t }}
+                {%- else -%}
+                  {{ 'blogs.comments.success' | t }}
+                {%- endif -%}
+              </p>
+            {%- endif -%}
+
+            {%- if number_of_comments > 0 -%}
+              <ul>
+                {% comment %}
+                  Display comment from URL parameters if it is waiting moderation
+                {% endcomment %}
+                {%- if comment and comment.status != 'published' -%}
+                  <li id="{{ comment.id }}" class="row">
+                    <div class="rte">
+                      {{ comment.content }}
+                    </div>
+                    {%- capture date -%}{{ comment.created_at | time_tag: format: 'month_day_year' }}{%- endcapture -%}
+                    <p>{{ 'blogs.article.comment_meta_html' | t: author: comment.author, date: date }}</p>
+                  </li>
+                {%- endif -%}
+
+                {%- for comment in article.comments -%}
+                  <li id="{{ comment.id }}" class="row">
+                    <div class="rte">
+                      {{ comment.content }}
+                    </div>
+                    {%- capture date -%}{{ comment.created_at | time_tag: format: 'month_day_year' }}{%- endcapture -%}
+                    <p class="article-meta">{{ 'blogs.article.comment_meta_html' | t: author: comment.author, date: date }}</p>
+                  </li>
+
+                {%- endfor -%}
+              </ul>
+
+              {%- if paginate.pages > 1 -%}
+                {% render 'pagination', paginate: paginate %}
+              {%- endif -%}
+            {%- endif -%}
+          </div>
+        {%- endpaginate -%}
+
+        {% form 'new_comment', article %}
+          <h3>{{ 'blogs.comments.form_title' | t }}</h3>
+          {{ form.errors | default_errors }}
+
+          <div class="row input-wrapper">
+            <label for="CommentAuthor">{{ 'blogs.comments.name' | t }}</label>
+            <input type="text"
+                   name="comment[author]"
+                   id="CommentAuthor"
+                   class="{% if form.errors contains 'author' %}input-error{% endif %} global-border-radius"
+                   value="{{ form.author }}"
+                   autocapitalize="words">
+          </div>
+          <div class="row input-wrapper">
+            <label for="CommentEmail">{{ 'blogs.comments.email' | t }}</label>
+            <input type="email"
+                   name="comment[email]"
+                   id="CommentEmail"
+                   class="{% if form.errors contains 'email' %}input-error{% endif %} global-border-radius"
+                   value="{{ form.email }}"
+                   spellcheck="false"
+                   autocomplete="off"
+                   autocapitalize="off">
+          </div>
+          <div class="row input-wrapper">
+            <label for="CommentBody">{{ 'blogs.comments.message' | t }}</label>
+            <textarea
+              name="comment[body]"
+              id="CommentBody"
+              class="{% if form.errors contains 'body' %}input-error{% endif %} global-border-radius">
+              {{ form.body }}
+            </textarea>
+          </div>
+
+          {%- if blog.moderated? -%}
+            <p>{{ 'blogs.comments.moderated' | t }}</p>
+          {%- endif -%}
+
+          <input type="submit" class="btn btn--primary" value="{{ 'blogs.comments.post' | t }}">
+        {% endform %}
+
+      </div>
+    {% endif %}
+
+    {%- if section.settings.show_tags and article.tags.size > 0 -%}
+      <div class="categories row{% if show_sidebar %} mobile-only{% endif %}">
+        <ul>
+          {%- for tag in blog.all_tags -%}
+            <li class="article-tag btn btn--tags btn--small">
+              <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+    {%- if blog.previous_article or blog.next_article -%}
+      <div class="grid">
+        <div class="grid__item one-half small-down--one-whole">
+          {%- if blog.previous_article -%}
+            <h2 class="small-title">{{ 'blogs.article.previous_post' | t }}</h2>
+            {% render 'article-block'
+                article: blog.previous_article,
+                grid_class: '',
+                crop_image: section.settings.others_crop_image,
+                crop_style: section.settings.others_crop_style,
+                show_date: section.settings.others_show_date,
+                show_author: section.settings.others_show_author,
+                compact_mode: true %}
+          {%- endif -%}
+        </div>
+        <div class="grid__item one-half small-down--one-whole">
+          {%- if blog.next_article -%}
+            <h2 class="small-title">{{ 'blogs.article.next_post' | t }}</h2>
+            {% render 'article-block'
+                article: blog.next_article,
+                grid_class: '',
+                crop_image: section.settings.others_crop_image,
+                crop_style: section.settings.others_crop_style,
+                show_date: section.settings.others_show_date,
+                show_author: section.settings.others_show_author,
+                compact_mode: true %}
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </article>
+
+  {%- if show_sidebar -%}
+    <div class="sidebar-container sidebar-container--right" data-section-id="{{ section.id }}" data-section-type="sidebar">
+      {%- if section.settings.show_tags or section.blocks.size > 0 -%}
+        {%- liquid
+          assign has_mobile_block = false
+          for block in section.blocks
+            if block.settings.show_on_mobile
+              assign has_mobile_block = true
+            endif
+          endfor
+        -%}
+        <div class="sidebar {% if has_mobile_block %}sidebar--has-mobile-block{% endif %} sidebar-sticky section-{{ section.id }}">
+          {%- if section.settings.show_tags and article.tags.size > 0 -%}
+            <div class="sidebar-block desktop-only">
+              <h2 class="small-title tags-title">{{ 'blogs.general.categories' | t }}</h2>
+              <ul class="article__tags">
+                {%- for tag in blog.all_tags -%}
+                  <li class="article-tag btn btn--tags btn--small">
+                    <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+          {% render 'sidebar-blocks' %}
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% render 'structured-data-article', article: article %}
+
+{% schema %}
+  {
+    "name": "Article",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Main article"
+      },
+      {
+        "type": "radio",
+        "id": "title_position",
+        "label": "Title position",
+        "options": [
+          { "value": "top", "label": "Above featured image" },
+          { "value": "bottom", "label": "Below featured image" }
+        ],
+        "default": "top"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_author",
+        "label": "Show author",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_date",
+        "label": "Show date",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_tags",
+        "label": "Show tags",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_share_buttons",
+        "label": "Show social sharing buttons",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Next and previous articles"
+      },
+      {
+        "type": "checkbox",
+        "id": "others_show_author",
+        "label": "Show author",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "others_show_date",
+        "label": "Show date",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "others_crop_image",
+        "label": "Crop image",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "others_crop_style",
+        "label": "Crop style",
+        "options": [
+          {
+            "value": "16-9",
+            "label": "Landscape"
+          },
+          {
+            "value": "1-1",
+            "label": "Square"
+          },
+          {
+            "value": "3-4",
+            "label": "Portrait"
+          }
+        ],
+        "default": "16-9"
+      },
+      {
+        "type": "header",
+        "content": "Sidebar"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_sidebar",
+        "label": "Show sidebar",
+        "default": true
+      },
+      {
+        "type": "paragraph",
+        "content": "Add content to the sidebar using the content blocks"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "article",
+        "name": "Featured articles",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Featured articles"
+          },
+          {
+            "type": "paragraph",
+            "content": "Add up to 3 articles to feature in the sidebar"
+          },
+          {
+            "type": "article",
+            "id": "sidebar_article_1",
+            "label": "Featured article 1"
+          },
+          {
+            "type": "article",
+            "id": "sidebar_article_2",
+            "label": "Featured article 2"
+          },
+          {
+            "type": "article",
+            "id": "sidebar_article_3",
+            "label": "Featured article 3"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_date",
+            "label": "Show date",
+            "default": true
+          },
+          {
+            "type": "checkbox",
+            "id": "show_author",
+            "label": "Show author",
+            "default": true
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "image",
+        "name": "Image",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "url",
+            "id": "image_url",
+            "label": "Image link"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "blog",
+        "name": "Latest blog posts",
+        "settings": [
+          {
+            "type": "blog",
+            "id": "blog_id",
+            "label": "Select blog",
+            "info": "Display the latest articles from a blog"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_title",
+            "label": "Show title",
+            "default": false
+          },
+          {
+            "type": "range",
+            "id": "blog_count_int",
+            "min": 1,
+            "max": 3,
+            "step": 1,
+            "label": "Number of articles to show",
+            "default": 1
+          },
+          {
+            "type": "checkbox",
+            "id": "show_date",
+            "label": "Show date",
+            "default": true
+          },
+          {
+            "type": "checkbox",
+            "id": "show_author",
+            "label": "Show author",
+            "default": true
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "collection_list",
+        "name": "Mini collection list",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Collections"
+          },
+          {
+            "type": "paragraph",
+            "content": "Add up to 5 collections"
+          },
+          {
+            "type": "collection",
+            "id": "collection_1",
+            "label": "Collection 1"
+          },
+          {
+            "type": "collection",
+            "id": "collection_2",
+            "label": "Collection 2"
+          },
+          {
+            "type": "collection",
+            "id": "collection_3",
+            "label": "Collection 3"
+          },
+          {
+            "type": "collection",
+            "id": "collection_4",
+            "label": "Collection 4"
+          },
+          {
+            "type": "collection",
+            "id": "collection_5",
+            "label": "Collection 5"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "name": "Rich text",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Rich text"
+          },
+          {
+            "type": "richtext",
+            "id": "text",
+            "label": "Text",
+            "default": "<p>Use this text to share information about your store with your customers.</p><p>Describe product, share announcements, or welcome customers to your store.</p>"
+          },
+          {
+            "type": "text",
+            "id": "button_text",
+            "label": "Button text"
+          },
+          {
+            "type": "url",
+            "id": "button_url",
+            "label": "Button link"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "testimonial",
+        "name": "Testimonial",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "show_on_mobile",
+            "label": "Show on mobile",
+            "default": false
+          },
+          {
+            "type": "product",
+            "id": "testimonial_product",
+            "label": "Product"
+          },
+          {
+            "type": "checkbox",
+            "id": "tab_products",
+            "label": "Show product in a card",
+            "default": true
+          },
+          {
+            "type": "range",
+            "id": "testimonial_stars",
+            "min": 0,
+            "max": 5,
+            "step": 1,
+            "label": "Star rating",
+            "default": 5
+          },
+          {
+            "type": "richtext",
+            "id": "testimonial_comment",
+            "label": "Testimonial",
+            "default": "<p>This is the perfect product!</p><p>We couldn't have asked for a better service!</p>"
+          },
+          {
+            "type": "header",
+            "content": "Author"
+          },
+          {
+            "type": "text",
+            "id": "testimonial_author",
+            "label": "Name",
+            "default": "Author Name"
+          },
+          {
+            "type": "text",
+            "id": "testimonial_location",
+            "label": "Subtitle",
+            "info": "For example: Location, job title",
+            "default": "Location"
+          },
+          {
+            "type": "image_picker",
+            "id": "testimonial_author_image",
+            "label": "Profile image"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,1 @@
+{"type":"aside","name":"Overlay group","sections":{"popup":{"type":"popup","settings":{"mode":"enabled","popup_delay_seconds":5,"popup_dismiss_for_days":30,"position":"center","show_newsletter":true,"show_social_icons":true}}},"order":["popup"]}

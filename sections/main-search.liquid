@@ -1,0 +1,160 @@
+{%- paginate search.results by section.settings.pagination_limit -%}
+  <div class="row row-space-bottom" data-components="facet-filters,price-range">
+    <h1 class="standard-title">{{ 'general.search.title' | t }}</h1>
+
+    <div class="search-bar row">
+      <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
+        <input type="hidden" name="type" value="{{ settings.search_type }}">
+        <input type="hidden" name="options[prefix]" value="last">
+        <span class="search-icon">{% render 'icon-search' %}</span>
+        <input class="search-form__input"
+               type="search"
+               name="q"
+               id="Search"
+               value="{{ search.terms | escape }}"
+               placeholder="{{ 'general.search.placeholder' | t }}"
+               aria-label="{{ 'general.search.placeholder' | t }}">
+        <button type="submit" class="btn btn--primary search-btn">
+          {{ 'general.search.submit' | t }}
+        </button>
+      </form>
+    </div>
+
+    {%- if search.performed -%}
+      <div class="row">
+        <h2 class="small-title" role="status">
+          {{ 'general.search.results_for' | t: terms: search.terms }}
+        </h2>
+      </div>
+    {%- endif -%}
+
+    {%- if search.performed -%}
+      {%- if search.filters != empty and section.settings.show_filters or section.settings.show_sort_by -%}
+        {%- capture close_icon -%}{% render 'icon-close' %}{%- endcapture -%}
+        {%- capture back_icon -%}{% render 'feather-arrow-left' %}{%- endcapture -%}
+        {% render 'facet-filters', results: search, paginate: paginate, close_icon: close_icon, back_icon: back_icon, include_swatch_style_tag: true %}
+      {%- endif -%}
+
+      {%- liquid
+        if section.settings.column_count == 2
+          assign grid_class = 'one-half small-down--one-whole'
+        elsif section.settings.column_count == 3
+          assign grid_class = 'one-third small-down--one-half'
+        elsif section.settings.column_count == 4
+          assign grid_class = 'one-quarter small-down--one-half'
+        endif
+
+        if settings.prod_block_image_ratio == 'shortest'
+          assign aspect_ratio = 0
+          for item in search.results
+            if item.featured_media.preview_image.aspect_ratio > aspect_ratio and item.object_type == 'product'
+              assign aspect_ratio = item.featured_media.preview_image.aspect_ratio
+            endif
+          endfor
+        elsif settings.prod_block_image_ratio == 'tallest'
+          assign aspect_ratio = 99
+          for item in search.results
+            if item.featured_media.preview_image.aspect_ratio < aspect_ratio and item.object_type == 'product'
+              assign aspect_ratio = item.featured_media.preview_image.aspect_ratio
+            endif
+          endfor
+        else
+          assign aspect_ratio = settings.prod_block_image_ratio
+        endif
+      -%}
+
+      <div class="cc-filters-results">
+        <div class="grid grid--uniform product-grid product-grid--rows">
+          {% if search.results_count == 0 %}
+            <div class="grid__item">
+              {{ 'general.search.no_results' | t: terms: search.terms }}
+            </div>
+          {% else %}
+            {%- for item in search.results -%}
+              {%- if item.object_type == 'product' -%}
+                {% render 'product-block', product: item, grid_class: grid_class, aspect_ratio: aspect_ratio %}
+              {%- else -%}
+                <div class="grid__item {{ grid_class }}">
+                  <div class="rte">
+                    <h4>{{ item.title }}</h4>
+                    <p>{{ item.content | strip_html | truncatewords: 40 }}</p>
+                  </div>
+                  <div class="row-half-space">
+                    <a class="standard-link" href="{{ item.url }}">{{ 'blogs.article.read_more' | t }}</a>
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+
+        {%- if paginate.pages > 1 -%}
+          {% render 'pagination', paginate: paginate %}
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+{% endpaginate %}
+
+{% schema %}
+  {
+    "name": "Search page",
+    "class": "section-search",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show product vendors",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Layout"
+      },
+      {
+        "type": "range",
+        "id": "column_count",
+        "min": 2,
+        "max": 4,
+        "step": 1,
+        "label": "Products per row",
+        "default": 4
+      },
+      {
+        "type": "range",
+        "id": "pagination_limit",
+        "min": 8,
+        "max": 48,
+        "step": 2,
+        "label": "Products per page",
+        "default": 16
+      },
+      {
+        "type": "header",
+        "content": "Filtering"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_filters",
+        "label": "Enable filtering",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_filter_prod_counts",
+        "label": "Show product counts",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Sorting"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_sort_by",
+        "label": "Show 'sort by' option",
+        "default": true
+      }
+    ]
+  }
+{% endschema %}

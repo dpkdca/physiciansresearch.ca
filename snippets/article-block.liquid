@@ -1,0 +1,48 @@
+<div class="article-summary {{ grid_class }}">
+  {% if article.image %}
+    {%- if crop_image -%}
+      {%- assign aspect_ratio_split = crop_style | split: '-' -%}
+      {%- assign image_aspect_ratio = 1.0 | times: aspect_ratio_split[0] | divided_by: aspect_ratio_split[1] -%}
+    {%- else -%}
+      {%- assign image_aspect_ratio = article.image.aspect_ratio -%}
+    {%- endif -%}
+
+    <div class="article-summary__image global-border-radius">
+      <a href="{{ article.url }}">
+        {% render 'responsive-image',
+          image: article.image,
+          aspect_ratio: image_aspect_ratio,
+          cover: true
+        %}
+      </a>
+    </div>
+  {% endif %}
+
+  {% if show_author %}
+    <span class="article-summary__author article-meta">{{ article.author }}</span>
+  {% endif %}
+
+  {% if show_author and show_date %}
+    <span class="article-summary__divider">&middot;</span>
+  {% endif %}
+
+  {% if show_date %}
+    <date class="article-summary__date article-meta">{{ article.published_at | date: format: 'month_day_year' }}</date>
+  {% endif %}
+
+  <h2 class="article-summary__title subtitle"><a href="{{ article.url }}">{{ article.title }}</a></h2>
+
+  {% unless compact_mode %}
+    <div class="article-summary__excerpt rte">
+      {% unless article.excerpt == blank %}
+        {{ article.excerpt }}
+      {% else %}
+        <p>{{ article.content | strip_html | truncatewords: 20 }}</p>
+      {% endunless %}
+    </div>
+
+    <div class="article-summary__read-more">
+      <a class="btn btn--primary btn-after-text" href="{{ article.url }}">{{ 'blogs.article.read_more' | t }}</a>
+    </div>
+  {% endunless %}
+</div>

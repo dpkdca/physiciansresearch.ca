@@ -1,0 +1,909 @@
+{%- assign default_tab_height = 76 -%}
+{%- assign show_suggestions = true -%}
+
+{%- capture image_size -%}{{ section.settings.logo_max_width | times: 2 }}x{%- endcapture -%}
+{%- capture mobile_image_size -%}{{ section.settings.mobile_logo_max_width | times: 2 }}x{%- endcapture -%}
+
+{%- capture logo_html -%}
+  <!-- LOGO / STORE NAME -->
+  {%- if template.name == 'index' -%}
+    <h1 class="h1 store-logo" itemscope itemtype="http://schema.org/Organization">
+  {%- else -%}
+    <div class="h1 store-logo" itemscope itemtype="http://schema.org/Organization">
+  {%- endif -%}
+
+    <!-- DESKTOP LOGO -->
+    <a href="{{ routes.root_url }}" itemprop="url" class="desktop-logo site-logo{% if section.settings.logo == blank %} site-logo--is-text{% endif %}">
+      <meta itemprop="name" content="{{ shop.name }}">
+      {%- if section.settings.logo != blank -%}
+        <img src="{{ section.settings.logo | img_url: image_size }}"
+             width="{{ section.settings.logo.width }}"
+             height="{{ section.settings.logo.height }}"
+             alt="{{ section.settings.logo.alt | default: shop.name }}"
+             itemprop="logo">
+      {%- else -%}
+        {{ shop.name }}
+      {%- endif -%}
+    </a>
+
+    <!-- MOBILE LOGO -->
+    <a href="{{ routes.root_url }}" itemprop="url" class="mobile-logo site-logo{% if section.settings.logo == blank %} site-logo--is-text{% endif %}">
+      <meta itemprop="name" content="{{ shop.name }}">
+      {%- if section.settings.mobile_logo != blank -%}
+        <img src="{{ section.settings.mobile_logo | img_url: mobile_image_size }}"
+             width="{{ section.settings.mobile_logo.width }}"
+             height="{{ section.settings.mobile_logo.height }}"
+             alt="{{ section.settings.mobile_logo.alt | default: shop.name }}"
+             itemprop="logo">
+      {%- elsif section.settings.logo != blank -%}
+        <img src="{{ section.settings.logo | img_url: image_size }}"
+             width="{{ section.settings.logo.width }}"
+             height="{{ section.settings.logo.height }}"
+             alt="{{ section.settings.logo.alt | default: shop.name }}"
+             itemprop="logo">
+      {%- else -%}
+        {{ shop.name }}
+      {%- endif -%}
+    </a>
+  {%- if template.name == 'index' -%}
+    </h1>
+  {%- else -%}
+    </div>
+  {%- endif -%}
+{%- endcapture -%}
+
+{% style %}
+{%- if section.settings.logo != blank -%}
+  .site-logo {
+    max-width: {{ section.settings.logo_max_width }}px;
+  }
+  @media (max-width: 1023px) {
+    .site-logo {
+      max-width: {{ section.settings.mobile_logo_max_width }}px;
+    }
+  }
+{%- endif -%}
+{% endstyle %}
+
+{%- if template == 'gift_card' -%}
+  <header class="page-header">
+    <div class="container">
+      <div class="utils__center">
+        {{ logo_html }}
+      </div>
+    </div>
+  </header>
+{%- else -%}
+  <header class="page-header section--{{ section.id }}" data-section-id="{{ section.id }}" data-section-type="header">
+
+    <div class="page-header--content">
+    {% comment %} 
+  <div class="utils-bar relative">
+        <div class="utils__left">
+          <button class="btn btn--plain btn--menu js-mobile-menu-icon" aria-label="{{ 'general.accessibility_labels.menu_toggle' | t }}">{% render 'icon-menu' %}</button>
+
+          {% if section.settings.quicklink_show %}
+            {% capture quick_link_html %}
+              {% if section.settings.quicklink_type == "quicklink_newsletter" %}
+                {% capture quicklink_newsletter_link_text %}
+                  <button class="quicklink__link btn--plain js js-header-newsletter-open">
+                    <span class="quicklink__icon">{% render 'icon-mail' %}</span>
+                    <span class="quicklink__content">{{ section.settings.quicklink_content }}</span>
+                  </button>
+                {% endcapture %}
+                <div class="header-newsletter-wrapper hidden">
+                  <div class="header-newsletter-form lightbox-content">
+                    <div class="newsletter-section">
+                      {% assign form_id = section.id | prepend: "newsletter-signup-" %}
+                      {% form 'customer', id: form_id %}
+                        <div class="newsletter-form-container">
+                          <input type="hidden" name="contact[tags]" value="prospect,newsletter"/>
+
+                          {% if form.posted_successfully? %}
+                            {% capture quicklink_newsletter_link_text %}
+                              <div class="quicklink__content newsletter-section__success form-success">
+                                {{ 'general.newsletter.success' | t }}
+                              </div>
+                            {% endcapture %}
+                          {% else %}
+
+                            {% if form.errors %}
+                              <div class="errors">
+                                {% for field in form.errors %}
+                                <div class="error">{{ field | capitalize }} {{ form.errors.messages[field] }}</div>
+                                {% endfor %}
+                              </div>
+                            {% endif %}
+
+                            <div class="newsletter-section__inputs global-border-radius input-row--submit">
+                              <span class="subscribe__icon">{% render 'icon-mail' %}</span>
+                              <input class="newsletter-section__input-email global-border-radius" type="email" name="contact[email]" aria-label="{{ 'general.newsletter.email_label' | t }}" placeholder="{{ 'general.newsletter.email_placeholder' | t }}" value="" required />
+                              <button class="btn btn--primary newsletter-section__button" type="submit">{{ 'general.newsletter.submit' | t }}</button>
+                            </div>
+                          {% endif %}
+                        </div>
+                      {% endform %}
+                    </div>
+                  </div>
+                </div>
+
+                {{ quicklink_newsletter_link_text }}
+
+              {% elsif section.settings.quicklink_type == "quicklink_email" %}
+                <a class="quicklink__link" href="{{ section.settings.quicklink_url }}">
+                  <span class="quicklink__icon">{% render 'icon-mail' %}</span>
+                  <span class="quicklink__content">{{ section.settings.quicklink_content }}</span>
+                </a>
+              {% elsif section.settings.quicklink_type == "quicklink_phone" %}
+                <a class="quicklink__link" href="{{ section.settings.quicklink_url }}">
+                  <span class="quicklink__icon">{% render 'icon-phone' %}</span>
+                  <span class="quicklink__content">{{ section.settings.quicklink_content }}</span>
+                </a>
+              {% elsif section.settings.quicklink_type == "quicklink_page" %}
+                <a class="quicklink__link" href="{{ section.settings.quicklink_url }}">
+                  <span class="quicklink__content">{{ section.settings.quicklink_content }}</span>
+                </a>
+              {% endif %}
+            {% endcapture %}
+
+            {{ quick_link_html }}
+
+          {% endif %}
+        </div>
+
+        <div class="utils__center">
+          {{ logo_html }}
+        </div>
+
+        <div class="utils__right">
+          {% if section.settings.show_language_selector or section.settings.show_country_selector %}
+            <div class="desktop-header-localization utils__item js">
+              {% render 'localization', input_prefix: 'desktop-header', abbreviate_country: true %}
+            </div>
+          {% endif %}
+          {% if shop.customer_accounts_enabled %}
+            <div class="accounts utils__item accounts--desktop">
+              <div class="account-item">
+                <a href="{{ routes.account_url }}">
+                  <span class="user-icon feather-icon">
+                    {% render 'icon-account' %}
+                  </span>
+                  <span class="icon-fallback-text">{{ 'layout.customer.account' | t }}</span>
+                </a>
+              </div>
+            </div>
+          {% endif %}
+          <div class="header-search utils__item">
+            <a class="header-search-icon global-border-radius js-header-search-trigger" href="{{ routes.search_url }}">
+              {% render 'icon-search' %}
+              <span class="icon-fallback-text">{{ 'layout.search.open' | t }}</span>
+            </a>
+            <div class="header-search-form">
+              <button class="btn btn--plain header-close-search-icon js-header-search-trigger" aria-label="{{ 'layout.search.close' | t }}">
+                {% render 'icon-close' %}
+                <span class="icon-fallback-text">{{ 'layout.search.close' | t }}</span>
+              </button>
+              <div class="search-bar {% if section.settings.search_links_horizontal_title != blank or linklists[section.settings.search_links_horizontal_linklist] != blank or section.settings.search_links_vertical_title != blank or linklists[section.settings.search_links_vertical_linklist] != blank %}search-bar--show-results{% endif %}">
+                <form class="search-form relative" action="{{ routes.search_url }}" method="get" role="search">
+                  <input type="hidden" name="type" value="{{ settings.search_type }}{% if show_suggestions %},query{% endif %}" />
+                  <input type="hidden" name="options[prefix]" value="last" />
+                  <button type="submit" class="search-icon btn--plain" aria-label="{{ 'general.search.submit' | t | escape }}">{% render 'icon-search' %}</button>
+                  <input type="search"
+                        name="q"
+                        id="HeaderSearch"
+                        value="{{ search.terms | escape | remove: '*' }}"
+                        placeholder="{{ 'general.search.placeholder' | t }}"
+                        aria-label="{{ 'general.search.placeholder' | t }}"
+                        class="search-form__input global-border-radius"
+                        data-live-search="{{ settings.enable_live_search }}"
+                        data-live-search-price="{{ settings.live_search_show_price }}"
+                        data-live-search-vendor="{{ settings.live_search_show_vendor }}"
+                        data-live-search-meta="{{ settings.live_search_search_meta }}"
+                        autocomplete="off">
+                  <button type="submit" class="btn btn--primary search-btn btn--small">{{ 'general.search.submit' | t }}</button>
+                </form>
+                <div class="search-bar__results">
+                  <div class="search-bar__results-list">
+                  </div>
+                  <div class="search-bar__results-loading">
+                    {{ 'general.quick_search.loading' | t }}
+                  </div>
+
+                  {% if section.settings.search_links_horizontal_title != blank or linklists[section.settings.search_links_horizontal_linklist] != blank %}
+                    <div class="search-bar__suggestions">
+                      {% if section.settings.search_links_horizontal_title != blank %}
+                        <h2 class="small-title search-bar__suggestions__title">{{ section.settings.search_links_horizontal_title }}</h2>
+                      {% endif %}
+
+                      {%- if linklists[section.settings.search_links_horizontal_linklist] != blank -%}
+                        <ul class="search-bar__suggestions__links search-bar__suggestions__links--horizontal-{% if section.settings.search_linklist_horizontal_fancy %}fancy{% else %}links{% endif %}">
+                          {%- for link in linklists[section.settings.search_links_horizontal_linklist].links -%}
+                            {% if section.settings.search_linklist_horizontal_fancy and link.type == 'collection_link' %}
+                              <li class="search-bar-suggestion-item search-bar-suggestion-item--collection">
+                                {%- assign collection = link.object -%}
+                                {%- assign image = collection.featured_image -%}
+                                <a class="exp-tab-link" href="{{ link.url }}">
+                                  <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                    <div class="exp-tab-image lazyload fade-in rimage-background"
+                                        data-bgset="{% render 'bgset', image: image %}"
+                                        data-sizes="auto"
+                                        data-parent-fit="cover"
+                                        style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                    </div>
+                                    <div class="exp-tab-text">
+                                      <h3 class="exp-tab-title">{{ link.title }}</h3>
+                                    </div>
+                                  </div>
+                                </a>
+                              </li>
+                            {% else %}
+                              <li class="search-bar-suggestion-item">
+                                <a class="" href="{{ link.url }}">{{ link.title }}</a>
+                              </li>
+                            {% endif %}
+                          {%- endfor -%}
+                        </ul>
+                      {%- endif -%}
+                    </div>
+                  {% endif %}
+
+                  {% if section.settings.search_links_vertical_title != blank or linklists[section.settings.search_links_vertical_linklist] != blank %}
+                    <div class="search-bar__suggestions">
+                      {% if section.settings.search_links_vertical_title != blank %}
+                        <h2 class="small-title search-bar__suggestions__title">{{ section.settings.search_links_vertical_title }}</h2>
+                      {% endif %}
+
+                      {%- if linklists[section.settings.search_links_vertical_linklist] != blank -%}
+                        <ul class="search-bar__suggestions__links search-bar__suggestions__links--vertical">
+                          {%- for link in linklists[section.settings.search_links_vertical_linklist].links -%}
+                            <li class="search-bar-suggestion-item">
+                              <a class="" href="{{ link.url }}">{{ link.title }}</a>
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- endif -%}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cart relative utils__item {% if cart.item_count > 0 %}cart--show-indicator{% endif %}">
+            <a href="{{ routes.cart_url }}">
+              <span class="cart-icon">
+                {% render 'icon-cart' %}
+                <span class="icon-fallback-text">{{ 'layout.cart.title' | t }}</span>
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <nav class="main-nav-bar{% if section.settings.show_border_bottom %} main-nav-bar--border{% endif %}" aria-label="{{ 'general.accessibility_labels.main_navigation' | t | escape }}">
+        <div class="mobile-nav-column-outer">
+          <button class="btn btn--plain btn--menu btn--menu-close mobile-menu-content js-close-mobile-menu" aria-label="{{ 'general.accessibility_labels.menu_toggle' | t }}">{% render 'icon-close' %}</button>
+          <div class="mobile-nav-column-inner">
+            <div class="mobile-nav-menu-container mobile-menu-level-1">
+              <div class="mobile-nav-menu-quicklink">
+                {{ quick_link_html }}
+              </div>
+
+                <ul class="main-nav">
+                {%- for link in linklists[section.settings.main_linklist].links -%}
+                  <li class="main-nav__item {% if link.links != blank %} main-nav__has-dropdown{% endif %}">
+                    {%- if section.settings.show_mobile_collection_images and link.type == 'collection_link' -%}
+                      {%- assign collection = link.object -%}
+                      {%- assign image = collection.featured_image -%}
+                      <a class="exp-tab-link mobile-menu-content" href="{{ link.url }}">
+                        <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                          <div class="exp-tab-image lazyload fade-in rimage-background"
+                              data-bgset="{% render 'bgset', image: image %}"
+                              data-sizes="auto"
+                              data-parent-fit="cover"
+                              style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                          </div>
+                          <div class="exp-tab-text">
+                            <h3 class="exp-tab-title">{{ link.title }}</h3>
+                          </div>
+                        </div>
+                      </a>
+                    {%- endif -%}
+
+                    <a class="main-nav__link" href="{{ link.url }}">{{ link.title }}</a>
+
+                    {%- if link.links != blank -%}
+                      <a href="#" class="mobile-menu-content feather-icon dropdown-chevron js-mobile-dropdown-trigger" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'feather-chevron-right' %}</a>
+
+                      <ul class="main-nav__dropdown">
+                        {%- for childlink in link.links -%}
+                          <li class="main-nav__child-item {% if childlink.links != blank %}main-nav__child-has-dropdown{% endif %}">
+                            {%- if section.settings.show_mobile_collection_images and childlink.type == 'collection_link' -%}
+                              {%- assign collection = childlink.object -%}
+                              {%- assign image = collection.featured_image -%}
+                              <a class="exp-tab-link mobile-menu-content" href="{{ childlink.url }}">
+                                <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                  <div class="exp-tab-image lazyload fade-in rimage-background"
+                                      data-bgset="{% render 'bgset', image: image %}"
+                                      data-sizes="auto"
+                                      data-parent-fit="cover"
+                                      style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                  </div>
+                                  <div class="exp-tab-text">
+                                    <h3 class="exp-tab-title">{{ childlink.title }}</h3>
+                                  </div>
+                                </div>
+                              </a>
+                            {%- endif -%}
+
+                            <a class="main-nav__child-link" href="{{ childlink.url }}">{{ childlink.title }}</a>
+
+                            {%- if childlink.links != blank -%}
+                              <a href="#" class="feather-icon dropdown-chevron js-mobile-dropdown-trigger" tabindex="-1" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'feather-chevron-right' %}</a>
+                              <ul class="main-nav__sub-dropdown">
+                                {%- for grandchildlink in childlink.links -%}
+                                  <li class="main-nav__sub-child-item">
+                                    {%- if section.settings.show_mobile_collection_images and grandchildlink.type == 'collection_link' -%}
+                                      {%- assign collection = grandchildlink.object -%}
+                                      {%- assign image = collection.featured_image -%}
+                                      <a class="exp-tab-link mobile-menu-content" href="{{ grandchildlink.url }}">
+                                        <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                          {%- if image != blank -%}
+                                            <div class="exp-tab-image lazyload fade-in rimage-background"
+                                                data-bgset="{% render 'bgset', image: image %}"
+                                                data-sizes="auto"
+                                                data-parent-fit="cover"
+                                                style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                            </div>
+                                          {%- endif -%}
+                                          <div class="exp-tab-text">
+                                            <h3 class="exp-tab-title">{{ grandchildlink.title }}</h3>
+                                          </div>
+                                        </div>
+                                      </a>
+                                    {%- endif -%}
+                                    <a class="main-nav__sub-child-link" href="{{ grandchildlink.url }}">{{ grandchildlink.title }}</a>
+                                  </li>
+                                {%- endfor -%}
+                              </ul>
+                            {%- endif -%}
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+
+                {%- if shop.customer_accounts_enabled -%}
+                  <li class="mobile-menu-content accounts utils__item accounts--mobile">
+                    <div class="account-item main-nav__item">
+                      <a href="{{ routes.account_url }}" class="main-nav__link">{{ 'layout.customer.account' | t }}</a>
+                    </div>
+                  </li>
+                {%- endif -%}
+
+                {%- if section.settings.show_language_selector or section.settings.show_country_selector -%}
+                  <li class="main-nav__item mobile-menu-content">
+                    <div class="mobile-header-localization">
+                      {% render 'localization', input_prefix: 'mobile-header' %}
+                    </div>
+                  </li>
+                {%- endif -%}
+              </ul>
+              
+           
+            </div>
+          </div>
+        </div>
+        <a href="#" class="mobile-close-region js-close-mobile-menu" aria-label="hidden"></a>
+      </nav>
+   {% endcomment %}
+  <div class="sticky-header utils-bar relative">
+                <div class="sticky-logo utils__left">
+                    <button class="btn btn--plain btn--menu js-mobile-menu-icon" aria-label="{{ 'general.accessibility_labels.menu_toggle' | t }}">{% render 'icon-menu' %}</button>
+
+                 <div class="logo1"> {{ logo_html }}</div>
+                </div>
+<div class="utils__center logo2"> {{ logo_html }}</div>
+
+        <nav class="main-nav-bar{% if section.settings.show_border_bottom %} main-nav-bar--border{% endif %}" aria-label="{{ 'general.accessibility_labels.main_navigation' | t | escape }}">
+        <div class="mobile-nav-column-outer">
+          <button class="btn btn--plain btn--menu btn--menu-close mobile-menu-content js-close-mobile-menu" aria-label="{{ 'general.accessibility_labels.menu_toggle' | t }}">{% render 'icon-close' %}</button>
+          <div class="mobile-nav-column-inner">
+            <div class="mobile-nav-menu-container mobile-menu-level-1">
+              <div class="mobile-nav-menu-quicklink">
+                {{ quick_link_html }}
+              </div>
+
+                <ul class="main-nav utils__center">
+                {%- for link in linklists[section.settings.main_linklist].links -%}
+                  <li class="main-nav__item {% if link.links != blank %} main-nav__has-dropdown{% endif %}">
+                    {%- if section.settings.show_mobile_collection_images and link.type == 'collection_link' -%}
+                      {%- assign collection = link.object -%}
+                      {%- assign image = collection.featured_image -%}
+                      <a class="exp-tab-link mobile-menu-content" href="{{ link.url }}">
+                        <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                          <div class="exp-tab-image lazyload fade-in rimage-background"
+                              data-bgset="{% render 'bgset', image: image %}"
+                              data-sizes="auto"
+                              data-parent-fit="cover"
+                              style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                          </div>
+                          <div class="exp-tab-text">
+                            <h3 class="exp-tab-title">{{ link.title }}</h3>
+                          </div>
+                        </div>
+                      </a>
+                    {%- endif -%}
+
+                    <a class="main-nav__link" href="{{ link.url }}">{{ link.title }}</a>
+
+                    {%- if link.links != blank -%}
+                      <a href="#" class="mobile-menu-content feather-icon dropdown-chevron js-mobile-dropdown-trigger" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'feather-chevron-right' %}</a>
+
+                      <ul class="main-nav__dropdown">
+                        {%- for childlink in link.links -%}
+                          <li class="main-nav__child-item {% if childlink.links != blank %}main-nav__child-has-dropdown{% endif %}">
+                            {%- if section.settings.show_mobile_collection_images and childlink.type == 'collection_link' -%}
+                              {%- assign collection = childlink.object -%}
+                              {%- assign image = collection.featured_image -%}
+                              <a class="exp-tab-link mobile-menu-content" href="{{ childlink.url }}">
+                                <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                  <div class="exp-tab-image lazyload fade-in rimage-background"
+                                      data-bgset="{% render 'bgset', image: image %}"
+                                      data-sizes="auto"
+                                      data-parent-fit="cover"
+                                      style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                  </div>
+                                  <div class="exp-tab-text">
+                                    <h3 class="exp-tab-title">{{ childlink.title }}</h3>
+                                  </div>
+                                </div>
+                              </a>
+                            {%- endif -%}
+
+                            <a class="main-nav__child-link" href="{{ childlink.url }}">{{ childlink.title }}</a>
+
+                            {%- if childlink.links != blank -%}
+                              <a href="#" class="feather-icon dropdown-chevron js-mobile-dropdown-trigger" tabindex="-1" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'feather-chevron-right' %}</a>
+                              <ul class="main-nav__sub-dropdown">
+                                {%- for grandchildlink in childlink.links -%}
+                                  <li class="main-nav__sub-child-item">
+                                    {%- if section.settings.show_mobile_collection_images and grandchildlink.type == 'collection_link' -%}
+                                      {%- assign collection = grandchildlink.object -%}
+                                      {%- assign image = collection.featured_image -%}
+                                      <a class="exp-tab-link mobile-menu-content" href="{{ grandchildlink.url }}">
+                                        <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                          {%- if image != blank -%}
+                                            <div class="exp-tab-image lazyload fade-in rimage-background"
+                                                data-bgset="{% render 'bgset', image: image %}"
+                                                data-sizes="auto"
+                                                data-parent-fit="cover"
+                                                style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                            </div>
+                                          {%- endif -%}
+                                          <div class="exp-tab-text">
+                                            <h3 class="exp-tab-title">{{ grandchildlink.title }}</h3>
+                                          </div>
+                                        </div>
+                                      </a>
+                                    {%- endif -%}
+                                    <a class="main-nav__sub-child-link" href="{{ grandchildlink.url }}">{{ grandchildlink.title }}</a>
+                                  </li>
+                                {%- endfor -%}
+                              </ul>
+                            {%- endif -%}
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+
+                {%- if shop.customer_accounts_enabled -%}
+                  <li class="mobile-menu-content accounts utils__item accounts--mobile">
+                    <div class="account-item main-nav__item">
+                      <a href="{{ routes.account_url }}" class="main-nav__link">{{ 'layout.customer.account' | t }}</a>
+                    </div>
+                  </li>
+                {%- endif -%}
+
+                {%- if section.settings.show_language_selector or section.settings.show_country_selector -%}
+                  <li class="main-nav__item mobile-menu-content">
+                    <div class="mobile-header-localization">
+                      {% render 'localization', input_prefix: 'mobile-header' %}
+                    </div>
+                  </li>
+                {%- endif -%}
+              </ul>
+              
+           
+            </div>
+          </div>
+        </div>
+        <a href="#" class="mobile-close-region js-close-mobile-menu" aria-label="hidden"></a>
+      </nav>
+               {% comment %} <ul class="main-nav utils__center">
+                   
+                {%- for link in linklists[section.settings.main_linklist].links -%}
+                  <li class="main-nav__item {% if link.links != blank %} main-nav__has-dropdown{% endif %}">
+                    {%- if section.settings.show_mobile_collection_images and link.type == 'collection_link' -%}
+                      {%- assign collection = link.object -%}
+                      {%- assign image = collection.featured_image -%}
+                      <a class="exp-tab-link mobile-menu-content" href="{{ link.url }}">
+                        <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                          <div class="exp-tab-image lazyload fade-in rimage-background"
+                              data-bgset="{% render 'bgset', image: image %}"
+                              data-sizes="auto"
+                              data-parent-fit="cover"
+                              style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                          </div>
+                          <div class="exp-tab-text">
+                            <h3 class="exp-tab-title">{{ link.title }}</h3>
+                          </div>
+                        </div>
+                      </a>
+                    {%- endif -%}
+
+                    <a class="main-nav__link" href="{{ link.url }}">{{ link.title }}</a>
+
+                    {%- if link.links != blank -%}
+                      <a href="#" class="mobile-menu-content feather-icon dropdown-chevron js-mobile-dropdown-trigger" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'feather-chevron-right' %}</a>
+
+                      <ul class="main-nav__dropdown">
+                        {%- for childlink in link.links -%}
+                          <li class="main-nav__child-item {% if childlink.links != blank %}main-nav__child-has-dropdown{% endif %}">
+                            {%- if section.settings.show_mobile_collection_images and childlink.type == 'collection_link' -%}
+                              {%- assign collection = childlink.object -%}
+                              {%- assign image = collection.featured_image -%}
+                              <a class="exp-tab-link mobile-menu-content" href="{{ childlink.url }}">
+                                <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                  <div class="exp-tab-image lazyload fade-in rimage-background"
+                                      data-bgset="{% render 'bgset', image: image %}"
+                                      data-sizes="auto"
+                                      data-parent-fit="cover"
+                                      style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                  </div>
+                                  <div class="exp-tab-text">
+                                    <h3 class="exp-tab-title">{{ childlink.title }}</h3>
+                                  </div>
+                                </div>
+                              </a>
+                            {%- endif -%}
+
+                            <a class="main-nav__child-link" href="{{ childlink.url }}">{{ childlink.title }}</a>
+
+                            {%- if childlink.links != blank -%}
+                              <a href="#" class="feather-icon dropdown-chevron js-mobile-dropdown-trigger" tabindex="-1" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'feather-chevron-right' %}</a>
+                              <ul class="main-nav__sub-dropdown">
+                                {%- for grandchildlink in childlink.links -%}
+                                  <li class="main-nav__sub-child-item">
+                                    {%- if section.settings.show_mobile_collection_images and grandchildlink.type == 'collection_link' -%}
+                                      {%- assign collection = grandchildlink.object -%}
+                                      {%- assign image = collection.featured_image -%}
+                                      <a class="exp-tab-link mobile-menu-content" href="{{ grandchildlink.url }}">
+                                        <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                          {%- if image != blank -%}
+                                            <div class="exp-tab-image lazyload fade-in rimage-background"
+                                                data-bgset="{% render 'bgset', image: image %}"
+                                                data-sizes="auto"
+                                                data-parent-fit="cover"
+                                                style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                            </div>
+                                          {%- endif -%}
+                                          <div class="exp-tab-text">
+                                            <h3 class="exp-tab-title">{{ grandchildlink.title }}</h3>
+                                          </div>
+                                        </div>
+                                      </a>
+                                    {%- endif -%}
+                                    <a class="main-nav__sub-child-link" href="{{ grandchildlink.url }}">{{ grandchildlink.title }}</a>
+                                  </li>
+                                {%- endfor -%}
+                              </ul>
+                            {%- endif -%}
+                          </li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+
+                {%- if shop.customer_accounts_enabled -%}
+                  <li class="mobile-menu-content accounts utils__item accounts--mobile">
+                    <div class="account-item main-nav__item">
+                      <a href="{{ routes.account_url }}" class="main-nav__link">{{ 'layout.customer.account' | t }}</a>
+                    </div>
+                  </li>
+                {%- endif -%}
+
+                {%- if section.settings.show_language_selector or section.settings.show_country_selector -%}
+                  <li class="main-nav__item mobile-menu-content">
+                    <div class="mobile-header-localization">
+                      {% render 'localization', input_prefix: 'mobile-header' %}
+                    </div>
+                  </li>
+                {%- endif -%}
+              </ul>{% endcomment %}
+                 <div class="sticky-header-icons utils__right">
+
+                    {% if section.settings.show_language_selector or section.settings.show_country_selector %}
+            <div class="desktop-header-localization utils__item js">
+              {% render 'localization', input_prefix: 'desktop-header', abbreviate_country: true %}
+            </div>
+          {% endif %}
+          {% if shop.customer_accounts_enabled %}
+            <div class="accounts utils__item accounts--desktop">
+              <div class="account-item">
+                <a href="{{ routes.account_url }}">
+                  <span class="user-icon feather-icon">
+                    {% render 'icon-account' %}
+                  </span>
+                  <span class="icon-fallback-text">{{ 'layout.customer.account' | t }}</span>
+                </a>
+              </div>
+            </div>
+          {% endif %}
+          <div class="header-search utils__item">
+            <a class="header-search-icon global-border-radius js-header-search-trigger" href="{{ routes.search_url }}">
+              {% render 'icon-search' %}
+              <span class="icon-fallback-text">{{ 'layout.search.open' | t }}</span>
+            </a>
+            <div class="header-search-form">
+              <button class="btn btn--plain header-close-search-icon js-header-search-trigger" aria-label="{{ 'layout.search.close' | t }}">
+                {% render 'icon-close' %}
+                <span class="icon-fallback-text">{{ 'layout.search.close' | t }}</span>
+              </button>
+              <div class="search-bar {% if section.settings.search_links_horizontal_title != blank or linklists[section.settings.search_links_horizontal_linklist] != blank or section.settings.search_links_vertical_title != blank or linklists[section.settings.search_links_vertical_linklist] != blank %}search-bar--show-results{% endif %}">
+                <form class="search-form relative" action="{{ routes.search_url }}" method="get" role="search">
+                  <input type="hidden" name="type" value="{{ settings.search_type }}{% if show_suggestions %},query{% endif %}" />
+                  <input type="hidden" name="options[prefix]" value="last" />
+                  <button type="submit" class="search-icon btn--plain" aria-label="{{ 'general.search.submit' | t | escape }}">{% render 'icon-search' %}</button>
+                  <input type="search"
+                        name="q"
+                        id="HeaderSearch"
+                        value="{{ search.terms | escape | remove: '*' }}"
+                        placeholder="{{ 'general.search.placeholder' | t }}"
+                        aria-label="{{ 'general.search.placeholder' | t }}"
+                        class="search-form__input global-border-radius"
+                        data-live-search="{{ settings.enable_live_search }}"
+                        data-live-search-price="{{ settings.live_search_show_price }}"
+                        data-live-search-vendor="{{ settings.live_search_show_vendor }}"
+                        data-live-search-meta="{{ settings.live_search_search_meta }}"
+                        autocomplete="off">
+                  <button type="submit" class="btn btn--primary search-btn btn--small">{{ 'general.search.submit' | t }}</button>
+                </form>
+                <div class="search-bar__results">
+                  <div class="search-bar__results-list">
+                  </div>
+                  <div class="search-bar__results-loading">
+                    {{ 'general.quick_search.loading' | t }}
+                  </div>
+
+                  {% if section.settings.search_links_horizontal_title != blank or linklists[section.settings.search_links_horizontal_linklist] != blank %}
+                    <div class="search-bar__suggestions">
+                      {% if section.settings.search_links_horizontal_title != blank %}
+                        <h2 class="small-title search-bar__suggestions__title">{{ section.settings.search_links_horizontal_title }}</h2>
+                      {% endif %}
+
+                      {%- if linklists[section.settings.search_links_horizontal_linklist] != blank -%}
+                        <ul class="search-bar__suggestions__links search-bar__suggestions__links--horizontal-{% if section.settings.search_linklist_horizontal_fancy %}fancy{% else %}links{% endif %}">
+                          {%- for link in linklists[section.settings.search_links_horizontal_linklist].links -%}
+                            {% if section.settings.search_linklist_horizontal_fancy and link.type == 'collection_link' %}
+                              <li class="search-bar-suggestion-item search-bar-suggestion-item--collection">
+                                {%- assign collection = link.object -%}
+                                {%- assign image = collection.featured_image -%}
+                                <a class="exp-tab-link" href="{{ link.url }}">
+                                  <div class="exp-tab exp-tab--fill exp-tab--collection exp-tab--no-mobile-stack global-border-radius">
+                                    <div class="exp-tab-image lazyload fade-in rimage-background"
+                                        data-bgset="{% render 'bgset', image: image %}"
+                                        data-sizes="auto"
+                                        data-parent-fit="cover"
+                                        style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width:{{ default_tab_height | times: image.aspect_ratio | round }}px">
+                                    </div>
+                                    <div class="exp-tab-text">
+                                      <h3 class="exp-tab-title">{{ link.title }}</h3>
+                                    </div>
+                                  </div>
+                                </a>
+                              </li>
+                            {% else %}
+                              <li class="search-bar-suggestion-item">
+                                <a class="" href="{{ link.url }}">{{ link.title }}</a>
+                              </li>
+                            {% endif %}
+                          {%- endfor -%}
+                        </ul>
+                      {%- endif -%}
+                    </div>
+                  {% endif %}
+
+                  {% if section.settings.search_links_vertical_title != blank or linklists[section.settings.search_links_vertical_linklist] != blank %}
+                    <div class="search-bar__suggestions">
+                      {% if section.settings.search_links_vertical_title != blank %}
+                        <h2 class="small-title search-bar__suggestions__title">{{ section.settings.search_links_vertical_title }}</h2>
+                      {% endif %}
+
+                      {%- if linklists[section.settings.search_links_vertical_linklist] != blank -%}
+                        <ul class="search-bar__suggestions__links search-bar__suggestions__links--vertical">
+                          {%- for link in linklists[section.settings.search_links_vertical_linklist].links -%}
+                            <li class="search-bar-suggestion-item">
+                              <a class="" href="{{ link.url }}">{{ link.title }}</a>
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                      {%- endif -%}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cart relative utils__item {% if cart.item_count > 0 %}cart--show-indicator{% endif %}">
+            <a href="{{ routes.cart_url }}">
+              <span class="cart-icon">
+                {% render 'icon-cart' %}
+                <span class="icon-fallback-text">{{ 'layout.cart.title' | t }}</span>
+              </span>
+            </a>
+          </div>
+                   
+                 </div>
+              </div>
+    </div>
+    
+  </header>
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "Header",
+    "class": "section-header",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Learn more about how to use the different features in the header [here](https://support.cleancanvas.co.uk/expression-theme-support/header-footer-expression/)"
+      },
+      {
+        "type": "header",
+        "content": "Logo"
+      },
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo"
+      },
+      {
+        "type": "text",
+        "id": "logo_max_width",
+        "label": "Width on desktop (pixels)",
+        "default": "250"
+      },
+      {
+        "type": "text",
+        "id": "mobile_logo_max_width",
+        "label": "Width on mobile (pixels)",
+        "default": "250"
+      },
+      {
+        "type": "image_picker",
+        "id": "mobile_logo",
+        "label": "Alternative logo for mobile",
+        "info": "Add a different mobile logo (if required)"
+      },
+      {
+        "type": "header",
+        "content": "Navigation"
+      },
+      {
+        "type": "link_list",
+        "id": "main_linklist",
+        "label": "Menu",
+        "default": "main-menu"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_mobile_collection_images",
+        "label": "Show collection images in mobile menu",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_border_bottom",
+        "label": "Show line below navigation",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Search"
+      },
+      {
+        "type": "paragraph",
+        "content": "The following links show when the search bar is revealed."
+      },
+      {
+        "type": "text",
+        "id": "search_links_horizontal_title",
+        "label": "Horizontal links title"
+      },
+      {
+        "type": "link_list",
+        "id": "search_links_horizontal_linklist",
+        "label": "Horizontal links menu",
+        "info": "Does not support dropdown menus"
+      },
+      {
+        "type": "checkbox",
+        "id": "search_linklist_horizontal_fancy",
+        "label": "Show collection images",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "search_links_vertical_title",
+        "label": "Vertical links title"
+      },
+      {
+        "type": "link_list",
+        "id": "search_links_vertical_linklist",
+        "label": "Vertical links menu",
+        "info": "Does not support dropdown menus"
+      },
+      {
+        "type": "header",
+        "content": "Country/Region Selector",
+        "info": "To add a country/region, go to your [payment settings.](/admin/settings/payments)"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_country_selector",
+        "label": "Show country/region selector",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Language Selector",
+        "info": "To add a language, go to your [language settings.](/admin/settings/languages)"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_language_selector",
+        "label": "Show language selector",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Quick link"
+      },
+      {
+        "type": "checkbox",
+        "id": "quicklink_show",
+        "label": "Show",
+        "default": true
+      },
+      {
+        "type": "radio",
+        "id": "quicklink_type",
+        "label": "Link type",
+        "options": [
+          { "value": "quicklink_newsletter", "label": "Newsletter signup" },
+          { "value": "quicklink_phone", "label": "Phone number" },
+          { "value": "quicklink_email", "label": "Email" },
+          { "value": "quicklink_page", "label": "Page" }
+        ],
+        "default": "quicklink_newsletter"
+      },
+      {
+        "type": "text",
+        "id": "quicklink_content",
+        "label": "Text",
+        "default": "Get on the list"
+      },
+      {
+        "type": "url",
+        "id": "quicklink_url",
+        "label": "Link",
+        "info": "Add tel: followed by a phone number for phone links and mailto: followed by an email address for email links"
+      }
+    ]
+  }
+{% endschema %}

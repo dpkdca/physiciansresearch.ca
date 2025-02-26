@@ -1,0 +1,89 @@
+<style type="text/css">
+  .section-id-{{ section.id }}.rich-text-section {
+    background: {{ section.settings.color_bg }};
+    color: {{ section.settings.color_text }};
+  }
+
+  .section-id-{{ section.id }}.rich-text-section .small-title {
+    color: {{ section.settings.color_text }};
+  }
+</style>
+
+<div class="section-id-{{ section.id }} row-double-space rich-text-section global-border-radius {% if section.settings.layout == 'center' %} center{% endif %}">
+  <div class="padded-block">
+    {% unless section.settings.heading == blank %}
+      <h2 class="small-title">{{ section.settings.heading | escape }}</h2>
+    {% endunless %}
+
+    {% unless section.settings.content == blank %}
+      <div class="rte">{{ section.settings.content }}</div>
+    {% endunless %}
+
+    {% if section.settings.button_text != blank and section.settings.button_url != blank %}
+      <a href="{{ section.settings.button_url }}" class="btn btn--primary btn-after-text">{{ section.settings.button_text }}</a>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Rich text",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "radio",
+        "id": "layout",
+        "label": "Layout",
+        "options": [
+          { "value": "left", "label": "Left aligned" },
+          { "value": "center", "label": "Center aligned" }
+        ],
+        "default": "left"
+      },
+      {
+        "type": "text",
+        "id": "heading",
+        "label": "Heading",
+        "default": "Rich text section"
+      },
+      {
+        "type": "richtext",
+        "id": "content",
+        "label": "Content",
+        "default": "<p>Pair text with an image to give focus to a chosen product, or provide information about your store.</p>"
+      },
+      {
+        "type": "text",
+        "id": "button_text",
+        "label": "Button text"
+      },
+      {
+        "type": "url",
+        "id": "button_url",
+        "label": "Button link"
+      },
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background color",
+        "default": "#f6f7f6"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Text color",
+        "default": "#767676"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Rich text"
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

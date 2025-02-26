@@ -1,0 +1,94 @@
+<div class="row-double-space" data-section-id="{{ section.id }}" data-section-type="collection-list">
+  {%- if section.settings.title != blank -%}
+    <h2 class="standard-title">{{ section.settings.title }}</h2>
+  {%- endif -%}
+
+  <div class="grid grid--uniform collection-list">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        if block.settings.collection != blank
+          assign collection = collections[block.settings.collection]
+        else
+          assign collection = false
+        endif
+
+        if block.settings.alternative_image != blank
+          assign alternative_image = block.settings.alternative_image
+        else
+          assign alternative_image = false
+        endif
+      -%}
+      <div class="grid__item one-third small-down--one-whole collection-list__container" {{ block.shopify_attributes }}>
+        {% render 'collection-block', borders: block.settings.show_border, collection: collection, collection_subtitle: block.settings.collection_subtitle, alternative_image: alternative_image %}
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Collection list",
+    "class": "container",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Shop our collections"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "collection",
+        "name": "Collection",
+        "settings": [
+          {
+            "type": "collection",
+            "id": "collection",
+            "label": "Collection"
+          },
+          {
+            "type": "image_picker",
+            "id": "alternative_image",
+            "label": "Image",
+            "info": "If no image is selected, the collection featured image will display. 600 x 560px jpg recommended"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_border",
+            "label": "Show borders",
+            "default": false
+          },
+          {
+            "type": "text",
+            "id": "collection_subtitle",
+            "label": "Subtitle",
+            "default": "Add a few words about your collection"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Collection list",
+        "blocks": [
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          }
+        ]
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

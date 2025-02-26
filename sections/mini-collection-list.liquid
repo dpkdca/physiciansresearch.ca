@@ -1,0 +1,118 @@
+{%- assign default_tab_height = 76 -%}
+
+<div class="row-double-space mini-collection-list relative" data-section-id="{{ section.id }}" data-section-type="mini-collection-list">
+  {% if section.settings.title != blank %}
+    <h2 class="standard-title">{{ section.settings.title }}</h2>
+  {% endif %}
+  {% if section.settings.carousel_enabled %}<div class="relative mini-slider-container carousel-mobile-off-edge">{% endif %}
+  <div class="{% if section.settings.carousel_enabled %}swiper-container{% else %}grid grid-flex{% endif %}">
+    {% if section.settings.carousel_enabled %}
+      <div class="swiper-wrapper">
+    {% endif %}
+    {% for block in section.blocks %}
+      <div class="mini-collection-list--block {% if section.settings.carousel_enabled %} swiper-slide{% else %} grid__item one-quarter small-down--one-whole{% endif %}" {{ block.shopify_attributes }}>
+
+        {% if block.settings.collection != blank %}
+
+          {%- assign collection = collections[block.settings.collection] -%}
+          {%- assign image = collection.featured_image -%}
+          <a class="exp-tab-link" href="{{ collection.url }}">
+            <div class="exp-tab exp-tab--fill exp-tab--collection global-border-radius">
+              <div class="exp-tab-image lazyload rimage-background"
+                  data-bgset="{% render 'bgset', image: image %}"
+                  data-sizes="auto"
+                  data-parent-fit="cover"
+                  style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width: {{ default_tab_height | times: image.aspect_ratio | round }}px">
+              </div>
+              <div class="exp-tab-text">
+                <h3 class="exp-tab-title">{{ collection.title }}</h3>
+              </div>
+            </div>
+          </a>
+
+        {% else %}
+
+          <span class="exp-tab-link">
+            <div class="exp-tab exp-tab--fill exp-tab--collection global-border-radius">
+              <div class="exp-tab-image">
+                <div class="ext-tab-image-placeholder">
+                  {% capture placeholder_image_name %}collection-{{ forloop.index0 | modulo: 6 | plus: 1 }}{% endcapture %}
+                  {{ placeholder_image_name | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}
+                </div>
+              </div>
+
+              <div class="exp-tab-text">
+                <h3 class="exp-tab-title">{{ 'homepage.onboarding.collection_title' | t }}</h3>
+              </div>
+            </div>
+          </span>
+
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% if section.settings.carousel_enabled %}</div>{% endif %}
+  </div>
+  {% if section.settings.carousel_enabled %}
+  <button class="btn btn--plain mini-collection-slider-prev" aria-label="{{ 'general.accessibility_labels.previous' | t | escape }}"><span class="feather-icon slider-chevron">{% render 'feather-slider-left' %}</span></button>
+  <button class="btn btn--plain mini-collection-slider-next" aria-label="{{ 'general.accessibility_labels.next' | t | escape }}"><span class="feather-icon slider-chevron">{% render 'feather-slider-right' %}</span></button>
+  </div>
+  {% endif %}
+</div>
+
+{% schema %}
+  {
+    "name": "Mini collection list",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Mini collection row"
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_enabled",
+        "label": "Enable carousel",
+        "default": false
+      }
+    ],
+    "blocks": [
+      {
+        "type": "collection",
+        "name": "Collection",
+        "settings": [
+          {
+            "type": "collection",
+            "id": "collection",
+            "label": "Collection"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Mini collection list",
+        "blocks": [
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          },
+          {
+            "type": "collection"
+          }
+        ]
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

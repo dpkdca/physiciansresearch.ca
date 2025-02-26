@@ -1,0 +1,272 @@
+<div class="row-double-space video-section js-video-section section-{{ section.id }}" data-section-id="{{ section.id }}"  data-section-type="video">
+  {% style %}
+    .section-{{ section.id }} .video-container__play.feather-icon svg {
+      stroke: {{ section.settings.text_color }};
+    }
+
+    {% assign tint_opacity = section.settings.tint_opacity | divided_by: 100.00 | round: 2 %}
+    {% assign tint_color = section.settings.tint_color | color_modify: 'alpha', tint_opacity  %}
+
+    {%- if section.settings.overlay_style == 'box' -%}
+      .section-{{ section.id }} .overlay__inner {
+        background-color: {{ tint_color }};
+      }
+    {%- elsif section.settings.overlay_style == 'full' -%}
+      .section-{{ section.id }} .video-container__cover::after {
+        background-color: {{ tint_color }};
+      }
+    {%- endif -%}
+
+    .section-{{ section.id }} .overlay__inner {
+      color: {{ section.settings.text_color }};
+    }
+
+    .section-{{ section.id }} .overlay__heading {
+      font-size: {{ section.settings.title_size }}px;
+      {%- if section.settings.title_size >= 60 -%}
+        line-height: 1em;
+      {%- endif %}
+    }
+
+    @media (max-width: 1024px) {
+      .section-{{ section.id }} .overlay__heading {
+        {%- assign title_size_medium = section.settings.title_size | times: 0.8 -%}
+        font-size: {{ title_size_medium }}px;
+        {%- if title_size_medium >= 60 -%}
+          line-height: 1em;
+        {%- endif %}
+      }
+    }
+
+    @media (max-width: 840px) {
+      .section-{{ section.id }} .overlay__heading {
+        {%- assign title_size_small = section.settings.title_size | times: 0.6 -%}
+        font-size: {{ title_size_small }}px;
+        {%- if title_size_small >= 60 -%}
+          line-height: 1em;
+        {%- endif %}
+      }
+    }
+  {% endstyle %}
+
+  {% if section.settings.video_shopify != blank or section.settings.video_external != blank %}
+    <div class="video-container global-border-radius video-container--image video-container--modal-mobile overlay-style--{{ section.settings.overlay_style }}"
+      {% if section.settings.video_shopify != blank %}
+        data-video-sources="{%- for source in section.settings.video_shopify.sources -%}
+          {{ source.format }} {{ source.mime_type }} {{ source.url }}
+          {%- unless forloop.last -%}|{%- endunless -%}
+        {%- endfor -%}"
+        data-video-type="mp4"
+      {% elsif section.settings.video_external != blank %}
+        data-video-url="{{ section.settings.video_external | escape }}"
+      {% endif %}
+      data-video-autoplay="false"
+      data-video-loop="false">
+      <a class="video-container__stop" href="#" aria-label="{{ 'general.accessibility_labels.video_stop' | t | escape }}">{% render 'icon-close' %}</a>
+      <div class="video-container__video"></div>
+
+      {%- liquid
+        if section.settings.image
+          assign cover_image = section.settings.image
+        elsif section.settings.video_shopify
+          assign cover_image = section.settings.video_shopify.preview_image
+        endif
+      -%}
+      <div class="video-container__cover">
+        {%- if cover_image -%}
+          <div class="rimage-outer-wrapper lazyload fade-in"
+              data-bgset="{% render 'bgset', image: cover_image %}"
+              data-sizes="auto"
+              data-parent-fit="cover"
+              style="background-position: {{ cover_image.presentation.focal_point }}">
+            <noscript>
+              <div class="rimage-wrapper" style="padding-top:{{ 1 | divided_by: cover_image.aspect_ratio | times: 100 }}%">
+                <img src="{{ cover_image | img_url: '1024x1024' }}" alt="{{ cover_image.alt | escape }}" class="rimage__image">
+              </div>
+            </noscript>
+          </div>
+        {%- else -%}
+          <div class="placeholder-image video-container__cover">
+            {{- 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' -}}
+          </div>
+        {% endif %}
+      </div>
+      <div class="overlay overlay--position-{{ section.settings.overlay_position }}">
+        <div class="overlay__inner global-border-radius">
+          {% if section.settings.subheading != blank %}
+            <div class="overlay__subheading small-title">{{ section.settings.subheading }}</div>
+          {% endif %}
+          {% if section.settings.title != blank %}
+            <h2 class="overlay__heading large-title">{{ section.settings.title | newline_to_br }}</h2>
+          {% endif %}
+          {% if section.settings.text != blank %}
+            <div class="overlay__text">{{ section.settings.text }}</div>
+          {% endif %}
+          <a href="#" class="video-container__play feather-icon" aria-label="{{ 'general.accessibility_labels.video_play' | t | escape }}">{% render 'feather-play' %}</a>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="row-double-space video-section align-center">
+      {{ 'homepage.onboarding.no_content' | t }}
+    </div>
+  {% endif %}
+</div>
+
+{% schema %}
+  {
+    "name": "Video",
+    "tag": "section",
+    "settings": [
+      {
+        "id": "video_shopify",
+        "type": "video",
+        "label": "Video upload",
+        "info": "Hosted by Shopify. Replaces External video if both are set."
+      },
+      {
+        "id": "video_external",
+        "type": "text",
+        "label": "External video",
+        "info": "Supports YouTube and Vimeo",
+        "default": "https:\/\/www.youtube.com\/watch?v=_9VUPq3SxOc"
+      },
+      {
+        "id": "image",
+        "type": "image_picker",
+        "label": "Custom cover image",
+        "info": "Required for External videos"
+      },
+      {
+        "type": "header",
+        "content": "Overlay"
+      },
+      {
+        "id": "overlay_style",
+        "type": "select",
+        "label": "Overlay style",
+        "default": "full",
+        "options": [
+          {
+            "value": "full",
+            "label": "Full image"
+          },
+          {
+            "value": "box",
+            "label": "Text box"
+          },
+          {
+            "value": "no_background",
+            "label": "No background"
+          }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "tint_color",
+        "label": "Overlay color",
+        "default": "#000000"
+      },
+      {
+        "type": "range",
+        "id": "tint_opacity",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Overlay opacity",
+        "default": 10,
+        "unit": "%"
+      },
+      {
+        "type": "text",
+        "id": "subheading",
+        "label": "Subheading",
+        "default": "Use a video to get a customer's attention"
+      },
+      {
+        "type": "textarea",
+        "id": "title",
+        "label": "Heading",
+        "default": "Watch our video"
+      },
+      {
+        "type": "range",
+        "id": "title_size",
+        "min": 20,
+        "max": 100,
+        "step": 2,
+        "unit": "px",
+        "label": "Heading text size",
+        "default": 34
+      },
+      {
+        "type": "richtext",
+        "id": "text",
+        "label": "Text"
+      },
+      {
+        "type": "color",
+        "id": "text_color",
+        "label": "Text color",
+        "default": "#ffffff"
+      },
+      {
+        "type": "select",
+        "id": "overlay_position",
+        "label": "Text alignment",
+        "default": "center-center",
+        "options": [
+          {
+            "label": "Top left",
+            "value": "top-left"
+          },
+          {
+            "label": "Top center",
+            "value": "top-center"
+          },
+          {
+            "label": "Top right",
+            "value": "top-right"
+          },
+          {
+            "label": "Center left",
+            "value": "center-left"
+          },
+          {
+            "label": "Center center",
+            "value": "center-center"
+          },
+          {
+            "label": "Center right",
+            "value": "center-right"
+          },
+          {
+            "label": "Bottom left",
+            "value": "bottom-left"
+          },
+          {
+            "label": "Bottom center",
+            "value": "bottom-center"
+          },
+          {
+            "label": "Bottom right",
+            "value": "bottom-right"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Video",
+        "settings": {
+          "video_external": "https:\/\/www.youtube.com\/watch?v=_9VUPq3SxOc"
+        }
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

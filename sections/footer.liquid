@@ -1,0 +1,320 @@
+{%- liquid
+  assign show_signup = false
+  for block in section.blocks
+    if block.type == 'newsletter'
+      assign show_signup = true
+    endif
+  endfor
+
+  if section.blocks.size == 4
+    assign col_class = 'one-quarter'
+  elsif section.blocks.size == 3
+    assign col_class = 'one-third'
+  elsif section.blocks.size == 2
+    assign col_class = 'one-half'
+  else
+    assign col_class = 'one-whole'
+  endif
+-%}
+
+<footer class="page-footer" data-section-id="{{ section.id }}" data-section-type="footer">
+  {%- if section.blocks.size > 0 -%}
+    <div class="footer-blocks{% if show_signup %} footer-blocks--has-signup{% endif %}">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'newsletter' -%}
+            <div class="footer-block footer-block--subscribe {{ col_class }}" {{ block.shopify_attributes }}>
+              <div class="footer-subscribe">
+                <h2 class="footer-subscribe__title small-title">{{ block.settings.subscribe_title }}</h2>
+                {%- assign form_id = section.id | prepend: "newsletter-signup-" -%}
+                {%- form 'customer', id: form_id -%}
+                  {%- if form.posted_successfully? -%}
+                    <div class="footer-subscribe__response subscribe-form__response--success">
+                      <h3 class="h4">{{ 'general.newsletter.success' | t }}</h3>
+                    </div>
+                  {%- else -%}
+                    {%- if form.errors -%}
+                      <div class="footer-subscribe__response">
+                        {%- for field in form.errors -%}
+                          <p class="error-message">{{ field | capitalize }} - {{ form.errors.messages[field] }}</p>
+                        {%- endfor -%}
+                      </div>
+                    {%- endif -%}
+                    <div class="relative footer-subscribe__input-container">
+                      <input type="hidden" id="contact_tags" name="contact[tags]" value="prospect,newsletter">
+                      <span class="subscribe__icon">{% render 'icon-mail' %}</span>
+                      <input type="email"
+                            required class="footer-subscribe__email required global-border-radius"
+                            value=""
+                            id="mailinglist_email"
+                            placeholder="{{ block.settings.subscribe_label }}"
+                            name="contact[email]"
+                            aria-label="{{ block.settings.subscribe_label | escape }}">
+                      <button class="btn btn--primary btn--small footer-subscribe__submit" type="submit">
+                        {{- block.settings.subscribe_button -}}
+                      </button>
+                    </div>
+                  {%- endif -%}
+                {%- endform -%}
+                {%- if block.settings.subscribe_description != blank -%}
+                  <div class="rte small-text">{{ block.settings.subscribe_description }}</div>
+                {%- endif -%}
+              </div>
+              {%- if shop.features.follow_on_shop? and block.settings.enable_follow_on_shop -%}
+                <div class="follow-on-shop">
+                  {{- shop | login_button: action: 'follow' -}}
+                </div>
+              {%- endif -%}
+
+              {%- if section.settings.show_social_icons -%}
+          {% capture icon_size %}{% if settings.soc_icons_double %}x46{% else %}x30{% endif %}{% endcapture %}
+          {% render 'social-icons', icon_setting: settings.social_custom_icon, icon_size: icon_size, container_class: 'small-down--one-whole' %}
+        {%- endif -%}
+               {%- if section.settings.show_payment_icons -%}
+        <div class="cards">
+          {%- for type in shop.enabled_payment_types -%}
+            {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+            </div>
+
+          {%- when 'link_list' -%}
+            <div class="footer-block {{ col_class }}" {{ block.shopify_attributes }}>
+              <div class="footer-block__header flex-space-between">
+                <h2 class="small-title">{{ block.settings.heading | escape }}</h2>
+                <button class="footer-block__toggle btn btn--plain icon feather-icon js js-footer-block-toggle" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'svg-chevron-down' %}</button>
+              </div>
+              <div class="footer-block__content">
+                <ul class="footer-block__links">
+                  {%- for link in block.settings.menu.links -%}
+                    <li>
+                      <a href="{{ link.url }}">{{ link.title }}</a>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            </div>
+
+          {%- when 'text' -%}
+            <div class="footer-block {{ col_class }}" {{ block.shopify_attributes }}>
+              <div class="footer-block__header flex-space-between">
+                <h2 class="small-title">{{ block.settings.heading | escape }}</h2>
+                <button class="footer-block__toggle btn btn--plain icon feather-icon js js-footer-block-toggle" aria-label="{{ 'general.accessibility_labels.open_dropdown' | t }}">{% render 'svg-chevron-down' %}</button>
+              </div>
+              <div class="footer-block__content">
+                <div class="rte">
+                  {{ block.settings.text }}
+                </div>
+                {%- if shop.features.follow_on_shop? and block.settings.enable_follow_on_shop -%}
+                  <div class="follow-on-shop">
+                    {{- shop | login_button: action: 'follow' -}}
+                  </div>
+                {%- endif -%}
+                <div class="footer-img">
+                  {% if block.settings.footer_img != blank %} <img src="{{ block.settings.footer_img | img_url: 'master' }}"> {% endif %}
+                </div>
+              </div>
+            </div>
+
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+
+  <div class="footer-bottom">
+    <div class="footer-links">
+      <div class="one-half small-down--one-whole">
+        {%- if section.settings.show_language_selector or section.settings.show_country_selector -%}
+          <div class="footer-localization">
+            {% render 'localization', input_prefix: 'footer' %}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- assign small_linklist = section.settings.small_linklist -%}
+      <div class="footer-links--small one-half small-down--one-whole">
+        {%- if linklists[small_linklist].links.size > 0 -%}
+          <div class="small-down--one-whole">
+            <ul class="small-nav">
+              {%- for link in linklists[small_linklist].links -%}
+                <li class="small-nav__item">
+                  <a class="small-nav__link small-text" href="{{ link.url }}">{{ link.title }}</a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+       {% comment %}
+        {%- if section.settings.show_social_icons -%}
+          {% capture icon_size %}{% if settings.soc_icons_double %}x46{% else %}x30{% endif %}{% endcapture %}
+          {% render 'social-icons', icon_setting: settings.social_custom_icon, icon_size: icon_size, container_class: 'small-down--one-whole' %}
+        {%- endif -%}
+        {% endcomment %}
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <div class="copy small-down--one-whole">
+        <small class="copyright-text">{{ 'layout.footer.copyright' | t }} &copy; {{ 'now' | date: "%Y" }} <a href="{{ routes.root_url }}">{{ shop.name }}</a>.</small>
+        {%- if section.settings.show_powered_by -%}
+          <!-- <small class="powered-by">{{ powered_by_link }}</small> -->
+          <p class="footer__small-text">Design By <a href="https://digitalcareagency.com/" target="_blank">Digital Care Agency</a></p>
+        {%- endif -%}
+      </div>
+{% comment %}
+      {%- if section.settings.show_payment_icons -%}
+        <div class="cards">
+          {%- for type in shop.enabled_payment_types -%}
+            {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+      {% endcomment %}
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+  {
+    "name": "Footer",
+    "settings": [
+      {
+        "type": "link_list",
+        "id": "small_linklist",
+        "label": "Secondary menu",
+        "info": "This menu does not show dropdown items"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_powered_by",
+        "label": "Show 'Powered by Shopify'",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_payment_icons",
+        "label": "Show payment icons",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_social_icons",
+        "label": "Show social icons",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Country/Region Selector",
+        "info": "To add a country/region, go to your [payment settings.](/admin/settings/payments)"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_country_selector",
+        "label": "Show country/region selector",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Language Selector",
+        "info": "To add a language, go to your [language settings.](/admin/settings/languages)"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_language_selector",
+        "label": "Show language selector",
+        "default": true
+      }
+    ],
+    "max_blocks": 4,
+    "blocks": [
+      {
+        "type": "newsletter",
+        "name": "Newsletter signup",
+        "settings": [
+          {
+            "type": "text",
+            "id": "subscribe_title",
+            "label": "Heading",
+            "default": "Get updates"
+          },
+          {
+            "type": "text",
+            "id": "subscribe_label",
+            "label": "Label",
+            "default": "Email address"
+          },
+          {
+            "type": "text",
+            "id": "subscribe_button",
+            "label": "Button text",
+            "default": "Sign up"
+          },
+          {
+            "type": "richtext",
+            "id": "subscribe_description",
+            "label": "Description"
+          },
+          {
+            "type": "checkbox",
+            "id": "enable_follow_on_shop",
+            "label": "Enable Follow on Shop",
+            "info": "To allow customers to follow your store on the Shop app from your storefront, Shop Pay must be enabled. [Learn more](https://help.shopify.com/manual/online-store/themes/customizing-themes/follow-on-shop)",
+            "default": false
+          }
+        ]
+      },
+      {
+        "type": "link_list",
+        "name": "Menu",
+        "settings": [
+          {
+            "type": "text",
+            "id": "heading",
+            "label": "Heading",
+            "default": "Footer links"
+          },
+          {
+            "type": "link_list",
+            "id": "menu",
+            "label": "Menu",
+            "info": "This menu won't show dropdown items",
+            "default": "footer"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "name": "Text area",
+        "settings": [
+          {
+            "type": "text",
+            "id": "heading",
+            "label": "Heading",
+            "default": "Talk about your store"
+          },
+          {
+            "type": "richtext",
+            "id": "text",
+            "label": "Text",
+            "default": "<p>Share store details, promotions, or brand content with your customers.</p>"
+          },
+          {
+            "type": "image_picker",
+            "id": "footer_img",
+            "label": "Add image"
+          },
+          {
+            "type": "checkbox",
+            "id": "enable_follow_on_shop",
+            "label": "Enable Follow on Shop",
+            "info": "To allow customers to follow your store on the Shop app from your storefront, Shop Pay must be enabled. [Learn more](https://help.shopify.com/manual/online-store/themes/customizing-themes/follow-on-shop)",
+            "default": false
+          }
+        ]
+      }
+    ]
+  }
+
+{% endschema %}

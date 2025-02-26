@@ -1,0 +1,251 @@
+<!doctype html>
+<html class="no-js supports-no-cookies" lang="{{ request.locale.iso_code }}">
+<head>
+  <!-- Expression 8.2.4 -->
+  {% render 'head-tag' %}
+
+  {%- capture seo_title -%}
+    {{ page_title }}
+    {% if current_tags %}
+      {% assign meta_tags = current_tags | join: ', ' %}
+      &ndash; {{ 'general.meta.tags' | t: tags: meta_tags }}
+    {% endif %}
+    {% if current_page != 1 %}
+      &ndash; {{ 'general.meta.page' | t: page: current_page }}
+    {% endif %}
+    {% unless page_title contains shop.name %}
+      &ndash; {{ shop.name }}
+    {% endunless %}
+  {%- endcapture -%}
+  <title>{{ seo_title }}</title>
+  <!-- Link Swiper's CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+  {% render 'social-meta-tags' %}
+
+  {%- liquid
+    assign logo_font = settings.type_logo_font
+    assign base_font = settings.type_base_font
+    assign base_font_fivehundo = base_font | font_modify: 'weight', '500'
+    assign base_font_bold = base_font | font_modify: 'weight', 'bolder'
+    assign base_font_italic = base_font | font_modify: 'style', 'italic'
+    assign base_font_bold_italic = base_font_bold | font_modify: 'style', 'italic'
+    assign heading_font = settings.type_heading_font
+    assign nav_font = settings.type_nav_font
+  -%}
+
+  <style>
+    {{ logo_font | font_face: font_display: 'fallback' }}
+    {{ base_font | font_face: font_display: 'fallback' }}
+    {{ base_font_fivehundo | font_face: font_display: 'fallback' }}
+    {{ base_font_bold | font_face: font_display: 'fallback' }}
+    {{ base_font_italic | font_face: font_display: 'fallback' }}
+    {{ base_font_bold_italic | font_face: font_display: 'fallback' }}
+    {{ heading_font | font_face: font_display: 'fallback' }}
+    {{ nav_font | font_face: font_display: 'fallback' }}
+  </style>
+
+  {{ 'styles.css' | asset_url | stylesheet_tag: preload: true }}
+{{ 'custom.css' | asset_url | stylesheet_tag: preload: true }}
+  <script>
+    document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+    window.theme = window.theme || {};
+    window.slate = window.slate || {};
+
+    {% if settings.currency_code_enabled %}
+    theme.moneyFormatWithCodePreference = {{ shop.money_with_currency_format | json }};
+    {% else %}
+    theme.moneyFormatWithCodePreference = {{ shop.money_format | json }};
+    {% endif %}
+
+    theme.moneyFormat = {{ shop.money_format | json }};
+    theme.strings = {
+      addToCart: {{ 'products.product.add_to_cart' | t | json }},
+      soldOut: {{ 'products.product.sold_out' | t | json }},
+      unavailable: {{ 'products.product.unavailable' | t | json }},
+      addressError: {{ 'map.errors.address_error' | t | json }},
+      addressNoResults: {{ 'map.errors.address_no_results' | t | json }},
+      addressQueryLimit: {{ 'map.errors.address_query_limit_html' | t | json }},
+      authError: {{ 'map.errors.auth_error' | t | json }},
+      addingToCart: {{ 'products.product.adding_to_cart' | t | json }},
+      addedToCart: {{ 'products.product.added' | t | json }},
+      goToCart: {{ 'products.product.go_to_cart' | t | json }},
+      cart: {{ 'layout.cart.title' | t | json }},
+      cartTermsNotChecked: {{ 'cart.terms.confirmation' | t | json }},
+      quantityTooHigh: {{ 'cart.general.quantity_too_high' | t: quantity: '[[ quantity ]]' | json }},
+      unitPriceSeparator: {{ 'products.product.unit_price_separator' | t | json }},
+      searchResultsPages: {{ 'general.quick_search.pages' | t | json }},
+      searchResultsProducts: {{ 'general.quick_search.products' | t | json }},
+      searchResultsArticles: {{ 'general.quick_search.articles' | t | json }},
+      searchResultsQueries: {{ 'general.quick_search.queries' | t | json }},
+      searchResultsViewAll: {{ 'general.quick_search.view_all' | t | json }},
+      searchResultsNoResults: {{ 'general.quick_search.no_results' | t | json }},
+      previous: {{'general.accessibility_labels.previous' | t | json }},
+      next: {{'general.accessibility_labels.next' | t | json }},
+      cart_shipping_calculator_hide_calculator: {{ 'cart.shipping_calculator.hide_calculator' | t | json }},
+      cart_shipping_calculator_title: {{ 'cart.shipping_calculator.title' | t | json }},
+      cart_general_hide_note: {{ 'cart.general.hide_note' | t | json }},
+      cart_general_show_note: {{ 'cart.general.show_note' | t | json }},
+      inventoryNotice: {{ 'products.labels.only_x_left' | t: quantity: '[[ quantity ]]' | json }},
+      imageSlider: {{ 'general.slider.images' | t | json }}
+    };
+    theme.routes = {
+      account_addresses_url: '{{ routes.account_addresses_url }}',
+      search_url: '{{ routes.search_url }}',
+      cart_url: '{{ routes.cart_url }}',
+      cart_add_url: '{{ routes.cart_add_url }}',
+      cart_change_url: '{{ routes.cart_change_url }}'
+    };
+    theme.settings = {
+      dynamicQtyOpts: {{ settings.hide_unavailable_quantity_opts | json }}
+    };
+  </script>
+
+  {%- if template.directory == 'customers' -%}
+    <script src="{{ 'shopify_common.js' | shopify_asset_url }}" defer="defer"></script>
+  {%- endif -%}
+
+  <script src="{{ 'vendor.min.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'theme.js' | asset_url }}" defer="defer"></script>
+
+  {{ content_for_header }}
+
+  {%- if request.design_mode -%}
+    <script src="{{ 'store-info.v1.0.0.js' | asset_url }}" defer="defer" data-theme="Expression" data-version="8.2.4" data-contact="{{ shop.email | escape }}"></script>
+  {%- endif -%}
+</head>
+
+<body id="{{ page_title | handle }}" class="template-{{ template.name | handle }}{% if template contains 'story' %} story-page{% endif %}">
+  <a class="in-page-link visually-hidden skip-link" href="#MainContent">{{ 'general.accessibility.skip_to_content' | t }}</a>
+
+  <div class="header-group page-width page-content container">
+    {% sections 'header-group' %}
+  </div>
+
+  {% render 'breadcrumbs' %}
+
+  <main id="MainContent">
+  {% comment %}
+    {%- if template contains 'index' -%}
+      {% section 'banner' %}
+      <div class="page-width sidebar-layout sidebar-layout--left">
+        {% section 'sidebar' %}
+        <div class="main-page-content">
+    {%- else -%}
+      <div class="page-width page-content container">
+    {%- endif -%}
+{% endcomment %}
+      {{ content_for_layout }}
+  {% comment %}
+    {%- if template contains 'index' -%}
+      </div>
+    {%- endif -%}
+   
+    </div>
+     {% endcomment %}
+  </main>
+
+  {%- sections 'overlay-group' -%}
+
+  <div class="footer-group page-width page-content container">
+    {% sections 'footer-group' %}
+  </div>
+
+  {%- if template contains 'product' or template contains 'index' -%}
+    {% render 'photoswipe' %}
+  {%- endif -%}
+  
+<script>
+// document.addEventListener("DOMContentLoaded", function () {
+//     const stickyHeader = document.querySelector(".sticky-header");
+//     const utilsBar = document.querySelector(".utils-bar");
+//     const mainNavBar = document.querySelector(".main-nav-bar");
+
+//     let lastScrollTop = 0;
+//     let showSticky = false;
+//     let timeout;
+
+//     function handleScroll() {
+//         let scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+//         if (scrollTop > 100 && !showSticky) {
+//             showSticky = true;
+//             clearTimeout(timeout); // Prevent multiple triggers
+//             timeout = setTimeout(() => {
+//                 stickyHeader.classList.add("show");
+//                 stickyHeader.classList.remove("hidden");
+//                 utilsBar.style.display = "none";
+//                 mainNavBar.style.display = "none";
+//             }, 500); // Delay before showing
+//         } else if (scrollTop < 100 && showSticky) {
+//             showSticky = false;
+//             clearTimeout(timeout);
+//             stickyHeader.classList.add("hidden");
+//             stickyHeader.classList.remove("show");
+//             utilsBar.style.display = "flex";
+//             mainNavBar.style.display = "block";
+//         }
+
+//         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+//     }
+
+//     window.addEventListener("scroll", function () {
+//         requestAnimationFrame(handleScroll);
+//     }, { passive: true });
+// });
+</script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    // Get all tab links
+    const tabLinks = document.querySelectorAll("#tabs a");
+
+    // Get all tab content divs dynamically
+    const tabContents = [];
+    tabLinks.forEach(link => {
+        const targetId = link.getAttribute("href").substring(1);
+        const content = document.getElementById(targetId);
+        if (content) {
+            tabContents.push(content);
+        }
+    });
+
+    // Hide all tab contents except the first one
+    tabContents.forEach((content, index) => {
+        content.style.display = index === 0 ? "block" : "none";
+    });
+
+    // Function to handle tab switching
+    function activateTab(event) {
+        event.preventDefault();
+        const targetId = this.getAttribute("href").substring(1);
+
+        // Hide all tab contents
+        tabContents.forEach(content => content.style.display = "none");
+
+        // Remove active class from all tab links
+        tabLinks.forEach(link => link.classList.remove("active"));
+
+        // Show the selected content and add active class
+        const selectedContent = document.getElementById(targetId);
+        if (selectedContent) {
+            selectedContent.style.display = "block";
+        }
+        this.classList.add("active");
+    }
+
+    // Attach event listeners to all tab links
+    tabLinks.forEach(link => link.addEventListener("click", activateTab));
+
+    // Set the first tab as active by default
+    if (tabLinks.length > 0) {
+        tabLinks[0].classList.add("active");
+    }
+});
+
+
+  </script>
+  <div id="custom-toast" class="hidden">🛒 Product added to cart!</div>
+
+</body>
+</html>

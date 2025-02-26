@@ -1,0 +1,80 @@
+<div class="section-id-{{ section.id }} row-double-space image-beside-text image-beside-text-section {% if section.settings.layout == 'image_on_right' %} image-beside-text--reverse{% endif %}">
+  <div class="image-beside-text__image">
+    {% if section.settings.image !=blank %}
+      {% render 'responsive-image', image: section.settings.image %}
+    {% else %}
+      {{ 'image' |  placeholder_svg_tag: 'placeholder-svg' }}
+    {% endif %}
+  </div>
+  <div class="image-beside-text__text">
+    {% unless section.settings.heading == blank %}
+      <h2 class="small-title">{{ section.settings.heading | escape }}</h2>
+    {% endunless %}
+
+    {% unless section.settings.content == blank %}
+      <div class="rte">{{ section.settings.content }}</div>
+    {% endunless %}
+
+    {% if section.settings.button_text != blank and section.settings.button_url != blank %}
+      <a href="{{ section.settings.button_url }}" class="btn btn--primary btn-after-text">{{ section.settings.button_text }}</a>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Image with text",
+    "tag": "section",
+    "class": "container",
+    "settings": [
+      {
+        "type": "radio",
+        "id": "layout",
+        "label": "Layout",
+        "options": [
+          { "value": "image_on_left", "label": "Image on left" },
+          { "value": "image_on_right", "label": "Image on right" }
+        ],
+        "default": "image_on_left"
+      },
+      {
+        "type": "image_picker",
+        "id": "image",
+        "label": "Image",
+        "info": "1200 x 1200px jpg recommended"
+      },
+      {
+        "type": "text",
+        "id": "heading",
+        "label": "Heading",
+        "default": "Image with text"
+      },
+      {
+        "type": "richtext",
+        "id": "content",
+        "label": "Content",
+        "default": "<p>Pair text with an image to give focus to your chosen product, collection, or blog post. Add details on availability, style, or even provide a review.</p>"
+      },
+      {
+        "type": "text",
+        "id": "button_text",
+        "label": "Button text"
+      },
+      {
+        "type": "url",
+        "id": "button_url",
+        "label": "Button link"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Image with text"
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

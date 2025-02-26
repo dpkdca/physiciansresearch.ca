@@ -1,0 +1,144 @@
+{%- liquid
+  assign blog = blogs[section.settings.blog]
+  if section.settings.articles_per_row == 2
+    assign grid_class = 'grid__item one-half small-down--one-whole'
+  elsif section.settings.articles_per_row == 3
+    assign grid_class = 'grid__item one-third small-down--one-whole'
+  else
+    assign grid_class = 'grid__item one-quarter small-down--one-whole'
+  endif
+-%}
+
+<div class="row-double-space featured-blog">
+  {% if section.settings.title != blank %}
+    <h2 class="standard-title"><a href="{{ blog.url }}">{{ section.settings.title | escape }}</a></h2>
+  {% endif %}
+
+  {% unless blog.articles.size == 0 %}
+
+    <div class="grid">
+      {% for article in blog.articles limit: section.settings.articles_per_row %}
+        {% render 'article-block',
+            article: article,
+            grid_class: grid_class,
+            crop_image: section.settings.crop_image,
+            crop_style: section.settings.crop_style,
+            show_date: section.settings.show_date,
+            show_author: section.settings.show_author %}
+
+      {% endfor %}
+    </div>
+
+  {% else %}
+
+    <div class="grid">
+      {% for i in (1..section.settings.articles_per_row) %}
+      <div class="article-summary {{ grid_class }}">
+        <div class="article-summary__image">
+          <div class="placeholder-image">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+        </div>
+
+        {% if section.settings.show_date %}
+          <date class="article-summary__date article-meta">{{ 'now' | date: format: 'month_day_year' }}</date>
+        {% endif %}
+
+        <h3 class="article-summary__title subtitle">{{ 'homepage.onboarding.article_title' | t }}</h3>
+
+        <div class="article-summary__excerpt rte">
+          <p>{{ 'homepage.onboarding.article_excerpt' | t }}</p>
+        </div>
+
+        <div class="article-summary__read-more">
+          <span class="btn btn--primary btn-after-text">{{ 'blogs.article.read_more' | t }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% endunless %}
+</div>
+
+{% schema %}
+  {
+    "name": "Blog posts",
+    "tag": "section",
+    "class": "container",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Blog posts"
+      },
+      {
+        "type": "blog",
+        "id": "blog",
+        "label": "Blog"
+      },
+      {
+        "type": "range",
+        "id": "articles_per_row",
+        "min": 2,
+        "max": 4,
+        "step": 1,
+        "label": "Articles to show",
+        "default": 3
+      },
+      {
+        "type": "checkbox",
+        "id": "show_author",
+        "label": "Show author",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "show_date",
+        "label": "Show date",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Featured image"
+      },
+      {
+        "type": "checkbox",
+        "id": "crop_image",
+        "label": "Crop",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "crop_style",
+        "label": "Crop style",
+        "options": [
+          {
+            "value": "16-9",
+            "label": "Landscape"
+          },
+          {
+            "value": "1-1",
+            "label": "Square"
+          },
+          {
+            "value": "3-4",
+            "label": "Portrait"
+          }
+        ],
+        "default": "16-9"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Blog posts",
+        "settings": {
+          "blog": "news",
+          "articles_per_row": 3
+        }
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

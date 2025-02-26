@@ -1,0 +1,59 @@
+{%- assign default_height = 76 -%}
+{%- if product != blank -%}
+{%- assign exp_tab_product = all_products[product] -%}
+{%- endif -%}
+
+<a class="exp-tab-link" href="{% if type == 'collection' %}{{ collection.url }}{% else %}{{ exp_tab_product.url }}{% endif %}">
+<div class="exp-tab exp-tab--{{ size }} exp-tab--{{ type }} {% if testimonial%} exp-tab--testimonial{% endif %} global-border-radius">
+  {% if type == 'collection' %}
+    {% if image != blank %}
+      <div class="exp-tab-image lazyload rimage-background"
+                  data-bgset="{% render 'bgset', image: image %}"
+                  data-sizes="auto"
+                  data-parent-fit="cover"
+                  style="padding-top:{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%; width: {{ default_height | times: image.aspect_ratio | round }}px">
+      </div>
+    {% else %}
+      <div class="ext-tab-image-placeholder">
+        {{ 'collection-' | append: current | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}
+      </div>
+    {% endif %}
+  {% elsif size == 'uncard' %}
+      <div class="exp-tab-image global-border-radius">
+        {% render'responsive-image', image: exp_tab_product.featured_media.preview_image %}
+      </div>
+  {% else %}
+    <div class="exp-tab-image lazyload rimage-background"
+                data-bgset="{% render 'bgset', image: exp_tab_product.featured_media.preview_image %}"
+                data-sizes="auto"
+                data-parent-fit="cover"
+                style="padding-top:{{ 1 | divided_by: exp_tab_product.featured_media.preview_image.aspect_ratio | times: 100 }}%; width: {{ default_height | times: exp_tab_product.featured_media.preview_image.aspect_ratio | round }}px">
+    </div>
+  {% endif %}
+  <div class="exp-tab-text">
+    {% if type == 'collection' %}
+      <h3 class="exp-tab-title">{{ title }}</h3>
+    {% else %}
+      <h3 class="exp-tab-title exp-tab-product-title">{{ exp_tab_product.title }}</h3>
+
+      <div class="product-price">
+        {% if exp_tab_product.compare_at_price_max > exp_tab_product.price %}
+          <span class="product-price__reduced theme-money">
+            {%- render "price", price: exp_tab_product.price -%}
+          </span>
+        {% else %}
+          <span class="theme-money">
+            {%- render "price", price: exp_tab_product.price -%}
+          </span>
+        {% endif %}
+        {% if exp_tab_product.compare_at_price_max > exp_tab_product.price %}
+          <span class="visually-hidden">{{ 'products.product.regular_price' | t }}</span>
+          <span class="product-price__compare theme-money">
+            {%- render "price", price: exp_tab_product.compare_at_price -%}
+          </span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+</a>

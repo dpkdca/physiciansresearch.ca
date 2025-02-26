@@ -1,0 +1,223 @@
+{%- liquid
+  assign header_image = collection.featured_image
+
+  if section.settings.column_count == 2
+    assign grid_class = 'one-half small-down--one-whole'
+  elsif section.settings.column_count == 3
+    assign grid_class = 'one-third small-down--one-half'
+  elsif section.settings.column_count == 4
+    assign grid_class = 'one-quarter small-down--one-half'
+  elsif section.settings.column_count == 5
+    assign grid_class = 'one-fifth small-down--one-half'
+  endif
+-%}
+
+{%- paginate collection.products by section.settings.pagination_limit -%}
+  <div class="row" data-section-id="{{ section.id }}" data-section-type="collection" data-components="facet-filters,price-range">
+    <div class="collection-header">
+      {%- if section.settings.title_position == 'top' -%}
+        <h1 class="large-title collection-title {% if section.settings.description_position == 'top' %} collection-title--with-description{% endif %}">{{ collection.title }}</h1>
+
+        {%- if collection.description != blank and section.settings.description_position == 'top' -%}
+          <div class="collection-description rte clearfix">
+            {{ collection.description }}
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+      {%- unless section.settings.crop == 'hidden' or header_image == blank -%}
+        {%- unless section.settings.crop == 'none' -%}
+          <div class="global-border-radius banner-image banner-image--crop banner-image--crop-{{ section.settings.crop }}">
+            <div class="rimage-background fade-in lazyload"
+              data-bgset="{% render 'bgset', image: header_image %}"
+              data-sizes="auto"
+              data-parent-fit="cover">
+              <noscript>
+                <img src="{{ header_image | img_url: '1024x1024' }}" alt="{{ header_image.alt | escape }}" class="rimage-background__image">
+              </noscript>
+            </div>
+          </div>
+        {%- else -%}
+          <div class="global-border-radius banner-image">
+            {% render 'responsive-image' image: header_image %}
+          </div>
+        {%- endunless -%}
+      {%- endunless -%}
+
+      {%- if section.settings.title_position == 'bottom' -%}
+        <h1 class="row large-title collection-title">{{ collection.title }}</h1>
+        {%- if collection.description != blank and section.settings.description_position == 'top' -%}
+          <div class="collection-description rte clearfix">
+            {{ collection.description }}
+          </div>
+        {%- endif -%}
+      {%- elsif section.settings.title_position == 'none' -%}
+        {%- if collection.description != blank and section.settings.description_position == 'top' -%}
+          <div class="collection-description rte clearfix">
+            {{ collection.description }}
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_filters or section.settings.show_sort_by -%}
+      {%- capture close_icon -%}{% render 'icon-close' %}{%- endcapture -%}
+      {%- capture back_icon -%}{% render 'feather-arrow-left' %}{%- endcapture -%}
+      {% render 'facet-filters', results: collection, paginate: paginate, close_icon: close_icon, back_icon: back_icon, include_swatch_style_tag: true %}
+    {%- endif -%}
+
+    {%- if paginate.items > 0 -%}
+      {%- liquid
+        if settings.prod_block_image_ratio == 'shortest'
+          assign aspect_ratio = 0
+          for product in collection.products
+            if product.featured_media.preview_image.aspect_ratio > aspect_ratio
+              assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+            endif
+          endfor
+        elsif settings.prod_block_image_ratio == 'tallest'
+          assign aspect_ratio = 99
+          for product in collection.products
+            if product.featured_media.preview_image.aspect_ratio < aspect_ratio
+              assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+            endif
+          endfor
+        else
+          assign aspect_ratio = settings.prod_block_image_ratio
+        endif
+      -%}
+    {%- endif -%}
+
+    <div class="cc-filters-results">
+      <div class="grid grid--uniform product-grid">
+        {%- for product in collection.products -%}
+          {% render 'product-block', product: product, grid_class: grid_class, aspect_ratio: aspect_ratio %}
+        {%- else -%}
+          {%- if collection.handle == 'all' and collection.all_vendors.size == 0 and collection.all_types.size == 0 -%}
+            {%- for i in (1..8) -%}
+              {% render 'onboarding-product-block' %}
+            {%- endfor -%}
+          {%- else -%}
+            <div class="grid__item">
+              <p>{{ 'collections.general.empty' | t }}</p>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.pages > 1 -%}
+        {% render 'pagination', paginate: paginate %}
+      {%- endif -%}
+    </div>
+
+    {%- if collection.description != blank and section.settings.description_position == 'bottom' -%}
+      <div class="collection-description rte">
+        {{ collection.description }}
+      </div>
+    {%- endif -%}
+  </div>
+{%- endpaginate -%}
+
+{% schema %}
+  {
+    "name": "Collection",
+    "class": "container",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show product vendors",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Layout"
+      },
+      {
+        "type": "range",
+        "id": "column_count",
+        "min": 2,
+        "max": 5,
+        "step": 1,
+        "label": "Products per row",
+        "default": 5
+      },
+      {
+        "type": "range",
+        "id": "pagination_limit",
+        "min": 8,
+        "max": 48,
+        "step": 2,
+        "label": "Products per page",
+        "default": 16
+      },
+      {
+        "type": "radio",
+        "id": "crop",
+        "label": "Featured image",
+        "options": [
+          { "value": "top", "label": "Top crop" },
+          { "value": "bottom", "label": "Bottom crop" },
+          { "value": "middle", "label": "Center crop" },
+          { "value": "none", "label": "No crop" },
+          { "value": "hidden", "label": "Do not display featured image" }
+        ],
+        "default": "middle"
+      },
+      {
+        "type": "radio",
+        "id": "title_position",
+        "label": "Title position",
+        "options": [
+          { "value": "top", "label": "Above featured image" },
+          { "value": "bottom", "label": "Below featured image" },
+          { "value": "none", "label": "Hide title" }
+        ],
+        "default": "top"
+      },
+      {
+        "type": "radio",
+        "id": "description_position",
+        "label": "Description position",
+        "options": [
+          { "value": "top", "label": "Below title" },
+          { "value": "bottom", "label": "Below products" },
+          { "value": "none", "label": "Hide description" }
+        ],
+        "default": "top"
+      },
+      {
+        "type": "header",
+        "content": "Filtering"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_filters",
+        "label": "Enable filtering",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_filter_prod_counts",
+        "label": "Show product counts",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Sorting"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_sort_by",
+        "label": "Show 'sort by' option",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_featured",
+        "label": "Show 'Featured' sort option",
+        "default": false,
+        "info": "Add your manually sorted order to the sort options"
+      }
+    ]
+  }
+{% endschema %}

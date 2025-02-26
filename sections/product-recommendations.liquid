@@ -1,0 +1,114 @@
+{%- liquid
+  if section.settings.product_count == 2
+    assign grid_class = 'one-half small-down--one-whole'
+  elsif section.settings.product_count == 3
+    assign grid_class = 'one-third small-down--one-half'
+  elsif section.settings.product_count == 4
+    assign grid_class = 'one-quarter small-down--one-half'
+   elsif section.settings.product_count == 5
+    assign grid_class = 'one-fifth small-down--one-half' 
+  endif
+-%}
+
+<div class="product-recommendations" data-section-id="{{ section.id }}" data-limit="{{ section.settings.product_count }}" data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ section.settings.product_count }}">
+  {%- if recommendations.performed and recommendations.products_count > 0 -%}
+    <div class="row related-products border-top">
+      <div class="section-heading">
+        <h2 class="section-heading__title standard-title">{{ section.settings.recommendations_title }}</h2>
+      </div>
+
+      <div class="grid grid--uniform product-grid product-grid--rows">
+        {%- liquid
+          if settings.prod_block_image_ratio == 'shortest'
+            assign aspect_ratio = 0
+            for product in recommendations.products
+              if product.featured_media.preview_image.aspect_ratio > aspect_ratio
+                assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+              endif
+            endfor
+          elsif settings.prod_block_image_ratio == 'tallest'
+            assign aspect_ratio = 99
+            for product in recommendations.products
+              if product.featured_media.preview_image.aspect_ratio < aspect_ratio
+                assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+              endif
+            endfor
+          else
+            assign aspect_ratio = settings.prod_block_image_ratio
+          endif
+        -%}
+        {%- for product in recommendations.products -%}
+          {%- render 'product-block', product: product, grid_class: grid_class, aspect_ratio: aspect_ratio -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+{% javascript %}
+  const sectionEl = document.querySelector('.product-recommendations');
+
+  function loadProductRecommendations() {
+    const { limit, url } = sectionEl.dataset;
+
+    fetch(sectionEl.dataset.url)
+      .then((response) => response.text())
+      .then((responseText) => {
+        const div = document.createElement('div');
+        div.innerHTML = responseText;
+
+        const rec = div.querySelector('.product-recommendations');
+        if (rec && rec.innerHTML.trim().length) {
+          document.querySelector('.product-recommendations').innerHTML = rec.innerHTML;
+        }
+
+        theme.initProductTitleAlignmentWatcher(sectionEl, '.productRecommendations');
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  document.addEventListener('shopify:section:load', (e) => {
+    if (sectionEl.dataset.sectionId === e.detail.sectionId) {
+      loadProductRecommendations();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', loadProductRecommendations);
+{% endjavascript %}
+
+{% schema %}
+  {
+    "name": "Related products",
+    "class": "container",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Dynamic recommendations use order and product information to change and improve over time. [Learn more](https://help.shopify.com/en/themes/development/recommended-products)"
+      },
+      {
+        "type": "text",
+        "id": "recommendations_title",
+        "label": "Heading",
+        "default": "You may also like"
+      },
+      {
+        "type": "range",
+        "id": "product_count",
+        "min": 2,
+        "max": 5,
+        "step": 1,
+        "label": "Maximum number of products per row on large screens",
+        "default": 5
+      },
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show product vendors",
+        "default": false
+      }
+    ]
+  }
+{% endschema %}

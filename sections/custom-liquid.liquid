@@ -1,0 +1,28 @@
+<div class="row-double-space">
+  {{ section.settings.custom_liquid }}
+</div>
+
+{% schema %}
+  {
+    "name": "Custom Liquid",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "liquid",
+        "id": "custom_liquid",
+        "label": "Custom Liquid",
+        "default": "Add Liquid code or HTML to create advanced customizations."
+      }
+    ],
+    "presets": [
+      {
+        "name": "Custom Liquid"
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

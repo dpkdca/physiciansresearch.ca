@@ -1,0 +1,82 @@
+{%- if collection != blank -%}<a class="collection-list__link" href="{{ collection.url }}">{%- endif -%}
+
+<div class="global-border-radius flex-space-between collection-list__block {% if borders == true %}collection-list__block--with-border{% endif %}">
+  {%- if collection != blank -%}
+    {%- assign image1 = false -%}
+    {%- assign image2 = false -%}
+    {%- assign image3 = false -%}
+
+    {%- if alternative_image != false -%}
+      {%- assign image1 = alternative_image -%}
+      {%- if collection.products.size > 0 -%}{%- assign image2 = collection.products[0].featured_media.preview_image -%}{%- endif -%}
+      {%- if collection.products.size > 1 -%}{%- assign image3 = collection.products[1].featured_media.preview_image -%}{%- endif -%}
+    {%- elsif collection.image != blank -%}
+      {%- assign image1 = collection.image -%}
+      {%- if collection.products.size > 0 -%}{%- assign image2 = collection.products[0].featured_media.preview_image -%}{%- endif -%}
+      {%- if collection.products.size > 1 -%}{%- assign image3 = collection.products[1].featured_media.preview_image -%}{%- endif -%}
+    {%- else -%}
+      {%- if collection.products.size > 0 -%}{%- assign image1 = collection.products[0].featured_media.preview_image -%}{%- endif -%}
+      {%- if collection.products.size > 1 -%}{%- assign image2 = collection.products[1].featured_media.preview_image -%}{%- endif -%}
+      {%- if collection.products.size > 2 -%}{%- assign image3 = collection.products[2].featured_media.preview_image -%}{%- endif -%}
+    {%- endif -%}
+
+    {%- if image1 != blank -%}
+      <div class="collection-list__block--featured-image lazyload rimage-background"
+           data-bgset="{% render 'bgset', image: image1 %}"
+           data-sizes="auto"
+           data-parent-fit="cover"
+           style="background-position: {{ image1.presentation.focal_point }}"></div>
+    {%- else -%}
+      <div class="collection-list__block--featured-image collection-list__block--placeholder">{{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}</div>
+    {%- endif -%}
+
+    {%- if image2 != blank and image3 != blank -%}
+      <div class="collection-list__block--product-images relative">
+      {%- if image2 != blank -%}
+        <div class="collection-list__block--product-image collection-list__block--product-1 lazyload rimage-background"
+            data-bgset="{% render 'bgset', image: image2 %}"
+            data-sizes="auto"
+            data-parent-fit="cover"></div>
+      {%- else -%}
+        <div class="collection-list__block--product-image collection-list__block--product-1 collection-list__block--placeholder">
+          {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}
+        </div>
+      {%- endif -%}
+      {%- if image3 != blank -%}
+        <div class="collection-list__block--product-image collection-list__block--product-2 lazyload rimage-background"
+            data-bgset="{% render 'bgset', image: image3 %}"
+            data-sizes="auto"
+            data-parent-fit="cover"></div>
+      {%- else -%}
+        <div class="collection-list__block--product-image collection-list__block--product-2 collection-list__block--placeholder">
+          {{ 'product-2' | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}
+        </div>
+      {%- endif -%}
+      </div>
+    {%- endif -%}
+
+  {%- else -%}
+
+    <div class="collection-list__block--featured-image collection-list__block--placeholder">{{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}</div>
+    <div class="collection-list__block--product-images relative">
+      <div class="collection-list__block--product-image collection-list__block--product-1 collection-list__block--placeholder">
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}
+      </div>
+      <div class="collection-list__block--product-image collection-list__block--product-2 collection-list__block--placeholder">
+        {{ 'product-2' | placeholder_svg_tag: 'placeholder-svg placeholder-svg--small' }}
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+{%- if collection != blank -%}
+  <h3 class="subtitle">{{ collection.title }}</h3>
+{%- else -%}
+  <h3 class="subtitle">{{ 'homepage.onboarding.collection_title' | t }}</h3>
+{%- endif -%}
+
+{%- if collection_subtitle != blank -%}
+  <span>{{ collection_subtitle }}</span>
+{%- endif -%}
+
+{%- if collection != blank -%}</a>{%- endif -%}

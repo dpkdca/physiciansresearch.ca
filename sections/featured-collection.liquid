@@ -1,0 +1,168 @@
+{%- liquid
+  assign collection = collections[section.settings.collection]
+  assign totalproducts =  collection.products_count 
+  if section.settings.column_count == 2
+    assign grid_class = 'one-half small-down--one-whole'
+  elsif section.settings.column_count == 3
+    assign grid_class = 'one-third small-down--one-half'
+  elsif section.settings.column_count == 4
+    assign grid_class = 'one-quarter small-down--one-half'
+  elsif section.settings.column_count == 5
+    assign grid_class = 'one-fifth small-down--one-half'
+  endif
+
+  if section.settings.enable_carousel
+    assign product_limit = 20
+  else
+    assign product_limit = section.settings.column_count | times: section.settings.row_count
+  endif
+
+  if settings.prod_block_image_ratio == 'shortest'
+    assign aspect_ratio = 0
+    for product in collection.products limit: product_limit
+      if product.featured_media.preview_image.aspect_ratio > aspect_ratio
+        assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+      endif
+    endfor
+  elsif settings.prod_block_image_ratio == 'tallest'
+    assign aspect_ratio = 99
+    for product in collection.products limit: product_limit
+      if product.featured_media.preview_image.aspect_ratio < aspect_ratio
+        assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+      endif
+    endfor
+  else
+    assign aspect_ratio = settings.prod_block_image_ratio
+  endif
+-%}
+
+<div class="row-double-space featured-collection" data-section-id="{{ section.id }}" data-section-type="featured-collection">
+  {%- if section.settings.title != blank -%}
+    <div class="section-heading">
+      <div class="three-quarters">
+        <h2 class="section-heading__title standard-title">
+          <a href="{{ collection.url }}">{{- section.settings.title | escape -}}</a> <span class="totalproducts">({{ totalproducts }} Products)</span>        </h2>
+        
+      </div>
+      <div class="text-right heading-link">
+        <a class="btn btn--primary btn-after-text {% comment %}link-reset text-with-chevron{% endcomment %}" href="{{ collection.url }}">
+          {{ 'collections.general.see_all' | t }}
+          <span class="feather-icon">{% render 'feather-chevron-right' %}</span>
+        </a>
+      </div>
+    </div>
+  {%- endif -%}
+
+  <div class="{% if section.settings.enable_carousel %}carousel-mobile-off-edge {% endif %}relative">
+    {% if section.settings.enable_carousel %}
+      <div data-grid-carousel data-grid-carousel-columns="{{ section.settings.column_count }}" data-grid-carousel-mobile-offedge>
+    {% endif %}
+
+    <div class="grid grid--uniform product-grid {% if section.settings.enable_carousel %}product-grid--carousel{% else %}product-grid--rows{% endif %}">
+      {% unless section.settings.enable_carousel %}
+        {% for product in collection.products limit: product_limit %}
+          {% render 'product-block',
+            product: product,
+            grid_class: grid_class,
+            aspect_ratio: aspect_ratio,
+            show_vendor: section.settings.show_vendor
+          %}
+        {% else %}
+
+          {% for i in (1..product_limit) %}
+            {% render 'onboarding-product-block', grid_class: grid_class %}
+          {% endfor %}
+
+        {% endfor %}
+      {% else %}
+        {% for product in collection.products limit: 20 %}
+          {% render 'product-block',
+            product: product,
+            grid_class: grid_class,
+            aspect_ratio: aspect_ratio,
+            show_vendor: section.settings.show_vendor
+          %}
+        {% else %}
+
+          {% for i in (1..6) %}
+            {% render 'onboarding-product-block', grid_class: grid_class %}
+          {% endfor %}
+
+        {% endfor %}
+      {% endunless %}
+    </div>
+
+    {% if section.settings.enable_carousel %}
+      </div>
+
+      <button class="carousel-prev btn--plain" aria-label="{{ 'general.accessibility_labels.previous' | t | escape }}"><span class="feather-icon slider-chevron">{% render 'feather-slider-left' %}</span></button>
+      <button class="carousel-next btn--plain" aria-label="{{ 'general.accessibility_labels.next' | t | escape }}"><span class="feather-icon slider-chevron">{% render 'feather-slider-right' %}</span></button>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Featured collection",
+    "class": "container",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Featured collection"
+      },
+      {
+        "id": "collection",
+        "type": "collection",
+        "label": "Collection"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show product vendors",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Layout"
+      },
+      {
+        "id": "enable_carousel",
+        "type": "checkbox",
+        "label": "Enable carousel",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "column_count",
+        "min": 2,
+        "max": 5,
+        "step": 1,
+        "label": "Maximum products per row",
+        "default": 3
+      },
+      {
+        "type": "range",
+        "id": "row_count",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "label": "Rows",
+        "info": "Does not apply to carousel layout",
+        "default": 1
+      }
+    ],
+    "presets": [
+      {
+        "name": "Featured collection"
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

@@ -1,0 +1,22 @@
+{% if paginate.pages > 1 %}
+<ul class="pagination">
+  {% if paginate.previous %}
+    <li class="pagination__button"><a href="{{ paginate.previous.url }}" aria-label="{{ 'general.accessibility_labels.previous' | t | escape }}" class="prev feather-icon">{% render 'feather-chevron-left' %}</a></li>
+  {% endif %}
+
+  {% for part in paginate.parts %}
+    {%- assign mobile_max = forloop.length | minus: 2 -%}
+    <li class="{% if paginate.current_page == part.title %}active{% endif %} {% if forloop.index > 2 %}{% unless forloop.index < 3 or forloop.index > mobile_max  %}mobile-pagination-hide{% endunless %}{% endif %}">
+      {% if part.is_link %}
+        {{ part.title | link_to: part.url, part.title }}
+      {% else %}
+        <span class="linkless">{{ part.title }}</span>
+      {% endif %}
+    </li>
+  {% endfor %}
+
+  {% if paginate.next %}
+    <li class="pagination__button"><a href="{{ paginate.next.url }}" aria-label="{{ 'general.accessibility_labels.next' | t | escape }}" class="next feather-icon">{% render 'feather-chevron-right' %}</a></li>
+  {% endif %}
+</ul>
+{% endif %}

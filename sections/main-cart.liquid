@@ -1,0 +1,301 @@
+<div data-section-id="{{ section.id }}" data-section-type="cart" class="row row-space-bottom" data-ajax-update={{ section.settings.enable_ajax_updates }}>
+  {% if cart.item_count > 0 %}
+    <h1 class="standard-title">{{ 'cart.general.title' | t }}</h1>
+
+    <form action="{{ routes.cart_url }}" method="post" novalidate>
+      <div class="cart-items row">
+        <div class="cart-items__header">
+          <div class="cart-column cart-column--detail">{{ 'cart.label.product' | t }}</div>
+          <div class="cart-column cart-column--price">{{ 'cart.label.price' | t }}</div>
+          <div class="cart-column cart-column--quantity">{{ 'cart.label.quantity' | t }}</div>
+          <div class="cart-column cart-column--total">{{ 'cart.label.total' | t }}</div>
+        </div>
+
+        <div class="cart-items__body">
+          {% for item in cart.items %}
+            {%- if forloop.first -%}
+              {%- capture collection_url -%}{{ item.product.collections.first.url }}{%- endcapture -%}
+              {%- if collection_url == empty or collection_url contains 'frontpage' -%}{%- capture collection_url -%}{{ routes.root_url }}{%- endcapture-%}{%- endif -%}
+            {%- endif -%}
+
+            {% render 'cart-item', item: item, forloop: forloop %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="cart-update text-right {% if section.settings.enable_ajax_updates %}no-js{% endif %}">
+        <input class="btn btn--secondary" type="submit" name="update" value="{{ 'cart.general.update' | t }}">
+      </div>
+
+      <div class="cart-subtotal-and-discounts">
+        {%- if cart.cart_level_discount_applications != blank -%}
+          <ul class="cart-discount-list align-right">
+            {%- for discount_application in cart.cart_level_discount_applications -%}
+              <li class="cart-discount cart-discount--inline">
+                <span class="cart-discount__label">{{ discount_application.title }}</span>
+                <span class="cart-discount__amount">-<span class="theme-money">{%- render "price", price: discount_application.total_allocated_amount, disable_currency_code: true -%}</span></span>
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+
+        <div class="cart-subtotal-row row-half-space">
+          <div class="cart-subtotal-label title small-title">{{ 'cart.general.subtotal' | t }}</div>
+          <div class="cart-subtotal-wrapper">
+            <div class="cart-subtotal title standard-title"><span class="theme-money">{%- render "price", price: cart.total_price, is_total_price: true -%}</span></div>
+          </div>
+        </div>
+      </div>
+
+      {% if section.settings.show_tax_and_shipping %}
+        {%- capture taxes_shipping_checkout -%}
+          {%- if cart.taxes_included and shop.shipping_policy.body != blank -%}
+            {{ 'cart.general.taxes_included_and_shipping_policy_html' | t: link: shop.shipping_policy.url }}
+          {%- elsif cart.taxes_included -%}
+            {{ 'cart.general.taxes_included_but_shipping_at_checkout' | t }}
+          {%- elsif shop.shipping_policy.body != blank -%}
+            {{ 'cart.general.taxes_and_shipping_policy_at_checkout_html' | t: link: shop.shipping_policy.url }}
+          {%- else -%}
+            {{ 'cart.general.taxes_and_shipping_at_checkout' | t }}
+          {%- endif -%}
+        {%- endcapture -%}
+
+        <div class="cart-policies">{{ taxes_shipping_checkout }}</div>
+      {% endif %}
+
+      {% if section.settings.show_shipping_calculator %}
+        <div class="shipping-calculator-container">
+          <div>
+            <button type="button" class="cart-trigger btn btn--plain js-shipping-calculator-trigger">
+              <span class="standard-link">{{ 'cart.shipping_calculator.title' | t }}</span>
+            </button>
+          </div>
+
+          <div class="shipping-calculator no-js">
+            {% render 'shipping-calculator', default_country: section.settings.shipping_calculator_default_country %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if section.settings.cart_notes_enable %}
+        <div class="cart-notes-container {% if cart.note != blank %}notes-open{% endif %}">
+          <button type="button" class="btn btn--plain js-cart-notes-trigger js">
+            <span class="standard-link">
+              {%- if cart.note == blank -%}
+                {{ 'cart.general.show_note' | t }}
+              {%- else -%}
+                {{ 'cart.general.hide_note' | t }}
+              {%- endif -%}
+            </span>
+          </button>
+          <div class="cart-notes input-wrapper row-half-space {% if cart.note == blank %}no-js{% endif %}">
+            <label for="CartSpecialInstructions">{{ 'cart.general.note' | t }}</label>
+            <textarea name="note" id="CartSpecialInstructions">{{ cart.note }}</textarea>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if section.settings.cart_terms_page != blank %}
+        <div class="text-right small-down--text-left row-half-space">
+          <div class="cart-terms input-wrapper--checkbox">
+            <label for="terms">
+              {{ 'cart.terms.agreement_html' | t: terms_url: section.settings.cart_terms_page }}
+              <input type="checkbox" id="terms" name="attributes[Terms accepted]" value="Yes"{% if cart.attributes["Terms accepted"] == "Yes" %} checked{% endif %} required />
+              <span class="check icon feather-icon">{% render 'feather-check' %}</span>
+            </label>
+          </div>
+        </div>
+      {% endif %}
+
+
+      <div class="cart-checkout text-right row-half-space">
+        <button class="btn btn--primary cart-checkout-button" type="submit" name="checkout">{{ 'cart.general.checkout' | t }}</button>
+      </div>
+
+      {% if additional_checkout_buttons and section.settings.show_additional_checkout_buttons == true and section.settings.cart_terms_page == blank %}
+        <div class="additional-checkout-buttons">
+          {{ content_for_additional_checkout_buttons }}
+        </div>
+      {% endif %}
+
+      <div class="cart-continue row-half-space">
+        <a href="{{ collection_url }}">{{ 'cart.general.continue_browsing' | t }}</a>
+      </div>
+    </form>
+  {% else %}
+    <h1 class="standard-title">{{ 'cart.general.title' | t }}</h1>
+
+    {% comment %}
+    Cart empty state
+    {% endcomment %}
+            
+    <div class="supports-cookies">
+      <p>{{ 'cart.general.empty' | t }}</p>
+      <a class="btn btn--primary" href="{{ routes.all_products_collection_url }}"><p>{{ 'cart.general.continue_browsing' | t }}</p></a>
+    </div>
+
+    {% comment %}
+    Cart no cookies state
+    ---------------------
+    Browser cookies are required to use the cart. If cookies aren't enabled in the
+    browser a message is displayed prompting the user to enable them.
+    {% endcomment %}
+    <div class="supports-no-cookies">
+      <p>{{ 'cart.general.cookies_required' | t }}</p>
+    </div>
+  {% endif %}
+
+  {%- if section.settings.feat_products_collection != blank -%}
+
+    {%- if section.settings.product_count == 2 -%}
+      {%- assign grid_class = 'one-half small-down--one-whole' -%}
+    {%- elsif section.settings.product_count == 3 -%}
+      {%- assign grid_class = 'one-third small-down--one-half' -%}
+    {%- elsif section.settings.product_count == 4 -%}
+      {%- assign grid_class = 'one-quarter small-down--one-half' -%}
+    {%- elsif section.settings.product_count == 5 -%}
+      {%- assign grid_class = 'one-fifth small-down--one-half' -%}
+    {%- endif -%}
+
+    {%- if section.settings.feat_products_empty_only == false or cart.item_count == 0 -%}
+      <div class="row">
+        {% if section.settings.feat_products_heading != empty %}
+          <div class="section-heading row-half-space">
+            <h2 class="section-heading__title small-title">{{ section.settings.feat_products_heading }}</h2>
+          </div>
+        {% endif %}
+
+        <div class="grid grid--uniform product-grid product-grid--rows">
+          {%- liquid
+            assign feat_collection = section.settings.feat_products_collection
+
+            if settings.prod_block_image_ratio == 'shortest'
+              assign aspect_ratio = 0
+              for product in collections[feat_collection].products limit: section.settings.product_count
+                if product.featured_media.preview_image.aspect_ratio > aspect_ratio
+                  assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+                endif
+              endfor
+            elsif settings.prod_block_image_ratio == 'tallest'
+              assign aspect_ratio = 99
+              for product in collections[feat_collection].products limit: section.settings.product_count
+                if product.featured_media.preview_image.aspect_ratio < aspect_ratio
+                  assign aspect_ratio = product.featured_media.preview_image.aspect_ratio
+                endif
+              endfor
+            else
+              assign aspect_ratio = settings.prod_block_image_ratio
+            endif
+          -%}
+          {%- for product in collections[feat_collection].products limit: section.settings.product_count -%}
+            {%- render 'product-block', product: product, grid_class: grid_class, aspect_ratio: aspect_ratio -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+  {
+    "name": "Cart",
+    "class": "container",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "cart_notes_enable",
+        "label": "Enable cart notes",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_tax_and_shipping",
+        "label": "Show tax and shipping information",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_additional_checkout_buttons",
+        "label": "Show additional checkout options",
+        "default": true,
+        "info": "Display other gateways and quick checkout buttons. [Read more](https://help.shopify.com/en/manual/payments/accelerated-checkouts)"
+      },
+      {
+        "type": "url",
+        "id": "cart_terms_page",
+        "label": "Terms and Conditions Page",
+        "info": "Additional checkout buttons will be hidden when cart terms are shown"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_backorder_text",
+        "label": "Show backorder text",
+        "default": true,
+        "info": "Only shows for products which use Shopify inventory tracking and are available to purchase when out of stock."
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_ajax_updates",
+        "label": "Enable automatic cart updates",
+        "info": "Allows the cart to be updated with ajax, you may need to turn this setting off for some apps to work.",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Shipping rates calculator"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_shipping_calculator",
+        "label": "Show",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "shipping_calculator_default_country",
+        "label": "Default country selection",
+        "default": "United States"
+      },
+      {
+        "type": "paragraph",
+        "content": "If a customer is logged-in, their default country shipping address will be selected. For correct spelling to use here, refer to checkout page dropdown."
+      },
+      {
+        "type": "header",
+        "content": "Featured products"
+      },
+      {
+        "type": "checkbox",
+        "id": "feat_products_empty_only",
+        "label": "Show only when cart is empty",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "feat_products_heading",
+        "label": "Heading",
+        "default": "Perhaps a featured item below is of interest..."
+      },
+      {
+        "type": "collection",
+        "id": "feat_products_collection",
+        "label": "Collection"
+      },
+      {
+        "type": "range",
+        "id": "product_count",
+        "min": 2,
+        "max": 5,
+        "step": 1,
+        "label": "Products in row",
+        "default": 5
+      },
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show product vendors",
+        "default": false
+      }
+    ]
+  }
+{% endschema %}

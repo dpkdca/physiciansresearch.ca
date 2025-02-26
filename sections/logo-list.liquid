@@ -1,0 +1,133 @@
+<div class="row-double-space logo-list section-{{ section.id }}" data-section-id="{{ section.id }}" data-section-type="logo-list">
+  {% style %}
+    .section-{{ section.id }} .logo-block {
+      width: {{ 100.0 | divided_by: section.settings.items_per_row | append: '' | truncate: 5, '' }}%;
+    }
+  {% endstyle %}
+
+  {% if section.settings.title != blank %}
+    <h2 class="standard-title">{{ section.settings.title }}</h2>
+  {% endif %}
+
+  {% if section.settings.carousel_enabled %}
+    <div class="logo-slider-container carousel-mobile-off-edge relative">
+  {% endif %}
+
+  <div class="logo-list-container flex-wrap {% if section.settings.carousel_enabled %} swiper-container{% else %}logo-list-grid grid{% endif %}" {% if section.settings.carousel_enabled %} data-items-per-row="{{ section.settings.items_per_row }}"{% endif %}>
+    {% if section.settings.carousel_enabled %}
+      <div class="swiper-wrapper">
+    {% endif %}
+      {% for block in section.blocks %}
+        <div class="logo-block small-down--one-half {% if section.settings.carousel_enabled %} swiper-slide{% endif %}" {{ block.shopify_attributes }}>
+          {% if block.settings.url != blank %}
+            <a class="logo-block__link" href="{{ block.settings.url }}">
+          {% endif %}
+
+              {% if block.settings.image != blank %}
+                <div class="logo-block__image global-border-radius">
+                  {% render 'responsive-image', image: block.settings.image %}
+                </div>
+              {% else %}
+                {{ 'logo' | placeholder_svg_tag: 'placeholder-svg' }}
+              {% endif %}
+
+              {% if block.settings.caption != blank %}
+                <div class="logo-block__caption">
+                  {{ block.settings.caption }}
+                </div>
+              {% endif %}
+
+          {% if block.settings.url != blank %}
+            </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% if section.settings.carousel_enabled %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if section.settings.carousel_enabled == true %}
+      <button class="btn btn--plain logo-list-slider-prev" aria-label="{{ 'general.accessibility_labels.previous' | t | escape }}"><span class="feather-icon slider-chevron">{% render 'feather-slider-left' %}</span></button>
+      <button class="btn btn--plain logo-list-slider-next" aria-label="{{ 'general.accessibility_labels.next' | t | escape }}"><span class="feather-icon slider-chevron">{% render 'feather-slider-right' %}</span></button>
+    </div>
+  {% endif %}
+</div>
+
+{% schema %}
+  {
+    "name": "Logo list",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Press, client or affiliate logos"
+      },
+      {
+        "type": "range",
+        "id": "items_per_row",
+        "min": 2,
+        "max": 10,
+        "step": 1,
+        "label": "Items per row on large screens",
+        "default": 4
+      },
+      {
+        "type": "checkbox",
+        "id": "carousel_enabled",
+        "label": "Enable carousel",
+        "default": false
+      }
+    ],
+    "blocks": [
+      {
+        "type": "logo",
+        "name": "Logo",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image",
+            "info": "400 x 400px png recommended"
+          },
+          {
+            "type": "text",
+            "id": "caption",
+            "label": "Caption"
+          },
+          {
+            "type": "url",
+            "id": "url",
+            "label": "Link"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Logo list",
+        "blocks": [
+          {
+            "type": "logo"
+          },
+          {
+            "type": "logo"
+          },
+          {
+            "type": "logo"
+          },
+          {
+            "type": "logo"
+          }
+        ]
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "aside"
+      ]
+    }
+  }
+{% endschema %}

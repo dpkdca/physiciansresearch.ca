@@ -1,0 +1,139 @@
+{%- liquid
+  if settings.prod_thumb_hover_image and product.media.size > 1
+    assign show_hover_image = true
+  else
+    assign show_hover_image = false
+  endif
+  assign cheapest_variant = product.variants | sort: 'price' | first
+-%}
+
+<div class="product-block grid__item {{ grid_class | default: 'one-quarter small-down--one-half' }}">
+  <a class="product-block__link" href="{{ product.url | within: collection }}">
+
+    {% if product.featured_media != blank %}
+      <div class="product-block__image {% if show_hover_image %}with-secondary-image {% if product.featured_media.preview_image.aspect_ratio == product.media[1].preview_image.aspect_ratio %}same-aspect-ratio{% endif %}{% endif %}">
+        <div class="product-block__primary-image">
+          {% render 'responsive-image',
+                  image: product.featured_media.preview_image,
+                  aspect_ratio: aspect_ratio
+          %}
+        </div>
+
+        {% if show_hover_image %}
+          <div class="product-block__secondary-image lazyload rimage-background"
+               data-bgset="{% render 'bgset', image: product.media[1].preview_image %}"
+               data-sizes="auto"
+               data-parent-fit="contain"></div>
+        {% endif %}
+
+        {% if product.available != true and settings.show_soldout_label == true%}
+          <div class="product-block__soldout-label small-text">{{ 'products.product.sold_out' | t }}</div>
+        {% else %}
+          {%- if cheapest_variant.compare_at_price > cheapest_variant.price and settings.show_sale_label == true -%}
+            <div class="product-block__sale-label small-text">
+              {%- if settings.sale_tag_message == '%' -%}
+                {%- assign saving = 1.0 | times: cheapest_variant.compare_at_price | minus: cheapest_variant.price -%}
+                {%- assign saving = 1.0 | times: saving | divided_by: cheapest_variant.compare_at_price | times: 100 | round -%}
+                {{ 'products.product.save' | t }} {{ saving }}%
+              {%- elsif settings.sale_tag_message == '$' -%}
+                {{ 'products.product.save' | t }} <span class="theme-money">
+                  {%- assign price = cheapest_variant.compare_at_price | minus: cheapest_variant.price -%}
+                  {%- render "price", price: price, disable_currency_code: true -%}
+                </span>
+              {%- else -%}
+                {{ 'products.product.on_sale' | t }}
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {% endif %}
+
+      </div>
+    {% endif %}
+
+    {% if section.settings.show_vendor or show_vendor %}
+      <div class="product-block__vendor small-text">{{ product.vendor }}</div>
+    {% endif %}
+
+    <div class="product-block__title">{{ product.title }}</div>
+
+    <div class="product-price">
+      {% if product.price_varies %}
+        <span class="product-price__from">{{ 'products.product.from_text' | t }}</span>
+      {% endif %}
+
+      {% if cheapest_variant.compare_at_price > cheapest_variant.price %}
+        <span class="product-price__reduced theme-money">
+          {%- render "price", price: cheapest_variant.price -%}
+        </span>
+      {% else %}
+        <span class="product-price__amount theme-money">{%- render "price", price: cheapest_variant.price -%}</span>
+      {% endif %}
+      {% if cheapest_variant.compare_at_price > cheapest_variant.price %}
+        <span class="visually-hidden">{{ 'products.product.regular_price' | t }}</span>
+        <span class="product-price__compare theme-money">{%- render "price", price: cheapest_variant.compare_at_price -%}</span>
+      {% endif %}
+    </div>
+    {% render 'unit-price', variant: cheapest_variant %}
+  </a>
+{% comment %}{{ product.description | strip_html | truncate: 65 }} {% endcomment %}
+
+
+ <button class="btn btn--primary addtocartbtn" onclick="addToCart({{ product.variants.first.id }})"> Add to Cart</button>
+
+<script>
+  function addToCart(variantId) {
+    fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            id: variantId,
+            quantity: 1
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Product added to cart:", data);
+
+        // Show custom toast notification
+        let toast = document.getElementById("custom-toast");
+        toast.classList.add("show");
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    })
+    .catch(error => {
+        console.error("Error adding to cart:", error);
+    });
+  }
+</script>
+
+
+
+  
+  {% if settings.swatch_enabled %}
+    {%- for option in product.options_with_values -%}
+      {%- if settings.swatch_option_name contains option.name -%}
+        <div class="product-swatch-inline">
+          {%- for value in option.values -%}
+            <span class="product-swatch-inline__dot" {% if settings.swatch_images %}style="background-image: url({{ value | handle | append: '.png' | file_img_url: '40x40', crop: 'center' }})"{% else %}style="background-color: {{ value | handle | remove: '-' }}"{% endif %}></span>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+  {% endif %}
+
+  {%- if settings.enable_product_reviews_collection and product.metafields.reviews.rating_count != blank and product.metafields.reviews.rating_count > 0 -%}
+    <div class="product-reviews">
+      {% render 'rating', rating_value: product.metafields.reviews.rating.value %}
+      {% if product.metafields.reviews.rating_count != blank and product.metafields.reviews.rating_count > 0 %}
+        <span class="cc-rating-custom-caption">
+            {{ product.metafields.reviews.rating_count }} {{ 'products.product.reviews_link' | t: count: product.metafields.reviews.rating_count | downcase }}
+          </span>
+      {% endif %}
+    </div>
+  {%- endif -%}
+</div>

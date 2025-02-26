@@ -1,0 +1,216 @@
+<div  class="list-collections row row-space-bottom" data-section-id="{{ section.id }}" data-section-type="list-collections">
+  <h1 class="large-title">{{ section.settings.title }}</h1>
+
+  {% if section.settings.display_type == 'all' %}
+    {% paginate collections by 18 %}
+
+      {% if section.settings.layout == 'blocks' %}
+        <div class="grid grid--uniform collection-list">
+          {% for collection in collections %}
+            <div class="grid__item one-third small-down--one-whole collection-list__container" {{ block.shopify_attributes }}>
+              {% render 'collection-block', borders: section.settings.show_border, collection: collection, alternative_image: false %}
+            </div>
+          {% endfor %}
+        </div>
+      {% elsif section.settings.layout == 'rows' %}
+        <div class="list-collections__rows-container">
+          {% for collection in collections %}
+            <div class="collection-row-header row-double-space">
+
+              {% if collection.image != blank and section.settings.crop != 'hidden' %}
+                <a href="{{ collection.url }}">
+                  {% unless section.settings.crop == 'none' %}
+                    <div class="global-border-radius banner-image banner-image--crop banner-image--crop-{{ section.settings.crop }}">
+                      <div class="rimage-background fade-in lazyload"
+                        data-bgset="{% render 'bgset', image: collection.image %}"
+                        data-sizes="auto"
+                        data-parent-fit="cover">
+                        <noscript>
+                          <img src="{{ collection.image | img_url: '1024x1024' }}" alt="{{ collection.image.alt | escape }}" class="rimage-background__image">
+                        </noscript>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="global-border-radius banner-image">
+                      {% render 'responsive-image' image: collection.image %}
+                    </div>
+                  {% endunless %}
+                </a>
+              {% endif %}
+
+              <h1 class="standard-title collection-title">
+                <a href="{{ collection.url }}">{{ collection.title }}</a>
+              </h1>
+              {% if collection.description != blank %}
+                <div class="collection-description rte clearfix">
+                  {{ collection.description }}
+                </div>
+              {% endif %}
+
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if paginate.pages > 1 %}
+        {% render 'pagination', paginate: paginate %}
+      {% endif %}
+
+    {% endpaginate %}
+  {% else %}
+    {% if section.settings.layout == 'blocks' %}
+      <div class="grid grid--uniform collection-list">
+        {% for block in section.blocks %}
+          {%- assign collection = collections[block.settings.collection] -%}
+          {%- if block.settings.alternative_image != blank -%}
+            {%- assign alternative_image = block.settings.alternative_image -%}
+          {%- else -%}
+            {%- assign alternative_image = false -%}
+          {%- endif -%}
+          <div class="grid__item one-third small-down--one-whole collection-list__container" {{ block.shopify_attributes }}>
+            {% render 'collection-block', borders: section.settings.show_border, collection: collection, alternative_image: alternative_image %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="list-collections__rows-container">
+        {% for block in section.blocks %}
+          {%- assign collection = collections[block.settings.collection] -%}
+          {% assign header_image = collection.featured_image %}
+          {%- if block.settings.alternative_image -%}
+            {%- assign header_image = block.settings.alternative_image -%}
+          {% endif %}
+          <div class="collection-row-header row-double-space">
+            {% if collection.image != blank and section.settings.crop != 'hidden' %}
+              <a href="{{ collection.url }}">
+                {% unless section.settings.crop == 'none' %}
+                  <div class="global-border-radius banner-image banner-image--crop banner-image--crop-{{ section.settings.crop }}">
+                    <div class="rimage-background fade-in lazyload"
+                      data-bgset="{% render 'bgset', image: header_image %}"
+                      data-sizes="auto"
+                      data-parent-fit="cover">
+                      <noscript>
+                        <img src="{{ header_image | img_url: '1024x1024' }}" alt="{{ header_image.alt | escape }}" class="rimage-background__image">
+                      </noscript>
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="global-border-radius banner-image">
+                    {% render 'responsive-image' image: header_image %}
+                  </div>
+                {% endunless %}
+              </a>
+            {% endif %}
+
+            <h1 class="standard-title collection-title">
+              <a href="{{ collection.url }}">{{ collection.title }}</a>
+            </h1>
+
+            {% if collection.description != blank %}
+              <div class="collection-description rte clearfix">
+                {{ collection.description }}
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
+
+{% schema %}
+  {
+    "name": "Collections list",
+    "class": "container",
+    "max_blocks": 20,
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Collection list"
+      },
+      {
+        "type": "paragraph",
+        "content": "All collections are listed by default. To customize your list, choose 'Selected' and add collections."
+      },
+      {
+        "type": "radio",
+        "id": "display_type",
+        "label": "Collections to show",
+        "default": "all",
+        "options": [
+          {
+            "value": "all",
+            "label": "All"
+          },
+          {
+            "value": "selected",
+            "label": "Selected"
+          }
+        ]
+      },
+      {
+        "type": "radio",
+        "id": "layout",
+        "label": "Layout",
+        "default": "blocks",
+        "options": [
+          {
+            "value": "blocks",
+            "label": "Grid"
+          },
+          {
+            "value": "rows",
+            "label": "Rows"
+          }
+        ]
+      },
+      {
+        "type": "header",
+        "content": "Grid layout"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_border",
+        "label": "Show borders",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Row layout"
+      },
+      {
+        "type": "radio",
+        "id": "crop",
+        "label": "Featured image crop",
+        "options": [
+          { "value": "top", "label": "Top crop" },
+          { "value": "bottom", "label": "Bottom crop" },
+          { "value": "middle", "label": "Center crop" },
+          { "value": "none", "label": "No crop" }
+        ],
+        "default": "middle"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "image",
+        "name": "Collection",
+        "settings": [
+          {
+            "type": "collection",
+            "id": "collection",
+            "label": "Collection"
+          },
+          {
+            "type": "image_picker",
+            "id": "alternative_image",
+            "label": "Image",
+            "info": "Replaces the collection's featured image"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
